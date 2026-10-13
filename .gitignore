@@ -1,0 +1,5 @@
+# Rojo / 도구가 만드는 파일
+sourcemap.json
+roblox.yml
+*.rbxl.lock
+*.rbxlx.lock
