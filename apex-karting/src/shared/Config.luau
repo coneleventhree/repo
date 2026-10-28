@@ -219,6 +219,14 @@ Config.Race = {
 	GridStagger = 7,
 	GridFirstRowBack = 12, -- studs behind the start line
 	ResetCooldown = 3,
+	-- A reset puts the kart on a clear spot of the centre line (beside or a
+	-- little behind the reset point if another kart is there). If it still
+	-- overlaps a kart (both reset at once), it is a see-through ghost with no
+	-- bumpers until it is ResetClear studs (centre to centre) from every kart
+	-- and at least ResetGhostTime has passed: bumpers that start deep inside
+	-- each other lock the two karts together.
+	ResetClear = 10.5,
+	ResetGhostTime = 1.0,
 	TrackChangeCooldown = 3, -- practice: seconds between track changes
 	TrackLoadTime = 3, -- seconds before practice karts return after a track change
 	OffTrackAllowance = 60, -- studs beyond the road edge that still count as on course

@@ -179,7 +179,7 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 | 설정 | | | SETTINGS 버튼 |
 | 트랙 고르기 (연습: 바로 변경, 대기 시간: 투표) | 카드 클릭 또는 1~5 | B (다음 트랙) | 카드 터치 |
 
-뒤집히거나 맵 밖으로 떨어지면 2초 뒤 자동으로 트랙에 복귀해요.
+뒤집히거나 맵 밖으로 떨어지면 2초 뒤 자동으로 트랙에 복귀해요. 복귀 지점에 다른 카트가 있으면 옆이나 조금 뒤의 빈자리에 놓여요. 그래도 겹치면(둘이 동시에 복귀하는 등) 겹침이 풀릴 때까지 그 카트는 반투명 고스트가 돼서 부딪히지 않아요(`Config.Race.ResetClear`, `ResetGhostTime`).
 
 ### 1인칭 콕핏 시점
 
@@ -225,6 +225,7 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 - 대신 각자의 컴퓨터가 범퍼 모양(둥근 직사각형, `Config.Kart.Bumper`)끼리 얼마나 겹쳤는지 계산해서, 스프링처럼 밀어내는 힘과 문질러지는 마찰을 줘요. 이 계산은 240 Hz 물리 예측 안에서 해요. 힘은 수평으로만 줘서 카트가 뜨거나 뒤집히지 않아요.
 - 겹친 만큼 밀어내는 힘(spring, 스프링)에는 상한이 있어요. 그래서 리셋이나 렉 때문에 깊이 겹쳐도 천천히 떨어져요. 세게 부딪힐 때는 다가오는 속도에 비례하는 힘(damping, 감쇠)이 충격을 받아줘요.
 - 상대 카트는 (상대 핑 + 내 핑)의 절반 + 0.05초만큼 앞으로 당겨서 계산해요(extrapolation, 외삽). 서버가 2초마다 각 플레이어의 핑을 알려줘요. 이걸 안 하면 0.15초 지연에서 4 studs나 떨어져 있는데 "유령 충돌"이 생겨요.
+- **contact echo(충돌 메아리 보정)**: 내 화면의 상대 카트는 지연 때문에 "아직 안 밀린" 상태로 보여요. 그래서 예전에는 부딪히는 동안 양쪽 컴퓨터가 계속 밀어내서, 0.1초 지연이면 반발 계수가 1을 넘었어요(부딪히기 전보다 더 빨리 튕겨 나가는 범퍼카). 카트 질량이 모두 같으니 상대는 내가 받은 힘의 정반대를 받았을 거예요. 그래서 최근 지연 시간 동안 내가 받은 범퍼 속도 변화를 상대 카트 속도·위치에서 빼서 계산해요(`KartPhysics.echoApply`). 0.1초 지연 추돌 반발 1.17 → 0.27(지연 없을 때와 같음). `luau tests/tools/lagbumps.luau`로 지연별로 비교해요(`-a off` = 보정 없이).
 - 테스트로 확인한 결과:
   - 55 km/h로 30 km/h 카트를 뒤에서 박으면: 앞 카트는 44 km/h로 밀려나고, 뒤 카트는 38 km/h로 느려져요. 범퍼는 0.7 studs(약 20 cm) 눌리고 살짝 튕겨요(반발 계수 0.26).
   - 30 km/h끼리 정면충돌하면: 둘 다 7 km/h로 튕겨 나가요.
@@ -344,9 +345,10 @@ Luau CLI와 Rojo가 있으면 프로젝트 폴더에서:
 
 ```bash
 luau tests/physics_test.luau     # 물리 + 여섯 트랙 자동 주행 랩(승차감 포함) + 뱅크 헤어핀 136개
-luau tests/collision_test.luau   # 카트끼리 추돌·정면·측면·T자·모서리·네트워크 지연·저프레임·슬립스트림·다리 위아래 카트 38개
+luau tests/collision_test.luau   # 카트끼리 추돌·정면·측면·T자·모서리·네트워크 지연·저프레임·슬립스트림·다리 위아래 카트·지연 충돌 보정 40개
 luau tests/limits_test.luau      # 트랙 리밋 판정·위치 추적·섹터·무효 랩·체커기 22개
 luau tests/tools/bumps.luau      # 범퍼 반응 표 (-a "Stiffness SpringMax Damping MaxAccel"로 다른 값 비교)
+luau tests/tools/lagbumps.luau   # 네트워크 지연별 추돌·정면·옆 비비기 반발 (-a off = contact echo 없이)
 luau tests/steering_test.luau    # 키보드 조향 램프·언더스티어·키보드로 한 바퀴 15개
 luau tests/camera_test.luau      # 1인칭 화면 반동·수평 흔들림·머리 쏠림 10개
 luau tests/tools/turnin.luau     # 키를 눌렀을 때 핸들·요(yaw) 반응 표 (스무딩 켬/끔 비교)
@@ -355,10 +357,10 @@ luau tests/layout_test.luau      # 여섯 서킷 배치 + 언덕·둑 + 도로 �
 luau tests/tools/crossing.luau -a Suzuka   # 입체교차: 다리 구간, 다리 밑 높이, 옹벽 위치·높이
 luau tests/tools/ride.luau -a "Hillside 60"   # 승차감: 한 바퀴 동안 차체 떨림(피치·롤 흔들림) 측정, plain = 예전 도로와 비교
 luau tests/tools/speedmap.luau -a Hillside > hs.csv && python3 tests/tools/speedmap.py hs.csv hs.png   # 자동 주행 속도 지도(코너별 최저 속도, 높이, 스로틀·핸들) — 코너 설계용
-python3 tests/mock/gen.py && luau tests/sound_test.luau # 엔진 rpm(공회전·클러치·속도), 잔디 덜컹거림, 연석 드르르 14개
-python3 tests/mock/gen.py && luau tests/touch_test.luau # 모바일 터치: 손가락이 버튼 밖에서 떼져도 버튼이 풀리는지, 카메라가 혼자 돌지 않는지 13개
-python3 tests/mock/gen.py && luau tests/e2e_test.luau   # 실제 스크립트로 연습(섹터·델타·트랙 리밋) + 설정 메뉴·소리 + 카메라 + 범퍼 + 트랙 변경 + 길이 투표·READY·1랩 고스트 퀄리파잉·그리드·레이스(경고·페널티)·포디움 + Silverstone 레이스 + 야간 서킷 + 언덕 서킷(둑·구멍 검사, 언덕 주행) + 새 효과음(개인 최고·경고·페널티·깃발·포디움) + HUD 글자 선명도 286개 (약 4분)
-python3 tests/mock/gen.py && luau tests/lobby_test.luau # 로비 메뉴·fly-by, 로딩 화면, PRACTICE 서버 이동, RACE 대기열(2명+7초, 다른 서버 대기자), 방 코드, 실패 처리, 연습 서버, 방 대기실(슬롯·READY·방장 트랙/길이·START 조건·KICK·재입장 막기·레이스 후 대기실 복귀·LEAVE), Studio 제자리 전환·KICK 166개 (약 4분)
+python3 tests/mock/gen.py globalTypes.d.luau && luau tests/sound_test.luau # 엔진 rpm(공회전·클러치·속도), 잔디 덜컹거림, 연석 드르르 14개
+python3 tests/mock/gen.py globalTypes.d.luau && luau tests/touch_test.luau # 모바일 터치: 손가락이 버튼 밖에서 떼져도 버튼이 풀리는지, 카메라가 혼자 돌지 않는지 13개
+python3 tests/mock/gen.py globalTypes.d.luau && luau tests/e2e_test.luau   # 실제 스크립트로 연습(섹터·델타·트랙 리밋) + 설정 메뉴·소리 + 카메라 + 범퍼 + 트랙 변경 + 길이 투표·READY·1랩 고스트 퀄리파잉·그리드·레이스(경고·페널티)·포디움 + Silverstone 레이스 + 야간 서킷 + 언덕 서킷(둑·구멍 검사, 언덕 주행) + 새 효과음(개인 최고·경고·페널티·깃발·포디움) + HUD 글자 선명도 + 같이 리셋한 카트 겹침 방지·리셋 고스트 294개 (약 4분)
+python3 tests/mock/gen.py globalTypes.d.luau && luau tests/lobby_test.luau # 로비 메뉴·fly-by, 로딩 화면, PRACTICE 서버 이동, RACE 대기열(2명+7초, 다른 서버 대기자), 방 코드, 실패 처리, 연습 서버, 방 대기실(슬롯·READY·방장 트랙/길이·START 조건·KICK·재입장 막기·레이스 후 대기실 복귀·LEAVE), Studio 제자리 전환·KICK 166개 (약 4분)
 luau tests/tools/dump_gui.luau > gui.txt && python3 tests/tools/render_gui.py gui.txt out/  # 메뉴·트랙 카드·방 코드·매칭·기록·로딩 화면·방장 HUD를 PC(1280×720)와 폰(844×390) 크기로 그림 (gen.py 먼저)
 python3 sounds/mix_levels.py     # 소리별 들리는 크기(휴대폰·노트북·헤드폰, 엔진 대비 dB)
 python3 sounds/make_sounds.py    # 효과음 다시 만들기 (numpy, scipy, ffmpeg; 이름을 주면 그것만: engine flag ...)

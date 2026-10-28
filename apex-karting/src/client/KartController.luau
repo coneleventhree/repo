@@ -208,16 +208,22 @@ end
 
 -- Other karts near ours, for the bumpers. Their positions arrive late (their
 -- driver -> server -> us), so each is moved ahead along its velocity by
--- about that delay (Config.Collision).
+-- about that delay (Config.Collision), and our own recent bumper pushes are
+-- mirrored onto it (KartPhysics.echoApply: it got the opposite push, which
+-- its late snapshot does not show yet).
 local CC = Config.Collision
 local kartsFolder: Instance? = nil
 local myPing, pingAge = 0.1, math.huge
 local others: { KartPhysics.Obstacle } = {}
-local function nearbyKarts(dt: number, here: Vector3): { KartPhysics.Obstacle }
+local otherKarts: { Model } = {} -- same order as `others`
+local echo: KartPhysics.Echo = setmetatable(KartPhysics.newEcho(), { __mode = "k" }) :: any
+local function nearbyKarts(dt: number, here: Vector3, t: number): { KartPhysics.Obstacle }
 	table.clear(others)
+	table.clear(otherKarts)
 	local folder = kartsFolder
-	-- ghosts (qualifying): nothing to bump into or draft behind
-	if not folder or workspace:GetAttribute("Ghost") then
+	-- ghosts (qualifying, or our kart just reset onto another): nothing to
+	-- bump into or draft behind
+	if not folder or workspace:GetAttribute("Ghost") or (kart and kart:GetAttribute("Ghost")) then
 		return others
 	end
 	pingAge += dt
@@ -226,7 +232,7 @@ local function nearbyKarts(dt: number, here: Vector3): { KartPhysics.Obstacle }
 		myPing = player:GetNetworkPing()
 	end
 	for _, m in folder:GetChildren() do
-		if m == kart or not m:IsA("Model") then
+		if m == kart or not m:IsA("Model") or m:GetAttribute("Ghost") then
 			continue
 		end
 		local c = m.PrimaryPart
@@ -245,12 +251,17 @@ local function nearbyKarts(dt: number, here: Vector3): { KartPhysics.Obstacle }
 			local theirPing = (owner and owner:GetAttribute("Ping") :: number?) or myPing
 			lead = math.clamp(CC.Lead + CC.PingShare * (myPing + theirPing), 0, CC.LeadMax)
 		end
-		table.insert(others, {
+		local o: KartPhysics.Obstacle = {
 			pos = vec(c.Position + vel * lead),
 			look = vec(c.CFrame.LookVector),
 			vel = vec(vel),
 			angVel = vec(c.AssemblyAngularVelocity),
-		})
+		}
+		if lead > 0 then
+			o = KartPhysics.echoApply(echo, m, o, t, lead + dt)
+		end
+		table.insert(others, o)
+		table.insert(otherKarts, m)
 	end
 	return others
 end
@@ -292,8 +303,12 @@ local function physicsStep(dt: number)
 		angVel = vec(c.AssemblyAngularVelocity),
 		mass = mass,
 	}
-	local res = KartPhysics.step(cfg, state, body, physControls, dt, raycast, nearbyKarts(dt, c.Position))
+	local t = os.clock()
+	local res = KartPhysics.step(cfg, state, body, physControls, dt, raycast, nearbyKarts(dt, c.Position, t))
 	telemetry = res
+	for i, m in otherKarts do
+		KartPhysics.echoAdd(echo, m, res.bumps[i], t)
+	end
 	-- a knock as the bumpers meet (not while they keep rubbing)
 	local touching = res.contact > 0
 	if touching and not wasContact then

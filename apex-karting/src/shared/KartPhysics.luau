@@ -86,6 +86,7 @@ export type Result = {
 	steerAngle: number,
 	contact: number, -- deepest bumper overlap with another kart this frame (studs, 0 = none)
 	contactSpeed: number, -- closing speed at the first touch this frame (studs/s)
+	bumps: { vector }, -- per obstacle (same order as `others`): horizontal velocity change its bumper gave us this frame
 	draft: number, -- slipstream 0..1
 }
 
@@ -754,6 +755,61 @@ local function bumperContact(bm: BumperConfig, b: Body, o: Obstacle, t: number):
 end
 KartPhysics.bumperContact = bumperContact
 
+-- Contact echo. Each client pushes only its own kart and sees the other one
+-- as it was a network delay ago, so during a hit the other kart still looks
+-- unpushed: both clients keep pushing and the karts fly apart faster than
+-- they met (0.1 s delay: a 30 km/h kart rear-ended at 55 left at 56). All karts have the
+-- same mass, so the other one got the opposite of our push: the echo keeps
+-- our pushes from the last `window` seconds (what its snapshot cannot show
+-- yet) and takes them off its velocity and position.
+export type Echo = { [any]: { { dv: vector, t: number } } }
+
+function KartPhysics.newEcho(): Echo
+	return {}
+end
+
+-- Records the push `dv` (Result.bumps[i]) the kart `key` gave us at time `now`.
+function KartPhysics.echoAdd(echo: Echo, key: any, dv: vector, now: number)
+	if dv == vector.zero then
+		return
+	end
+	local list = echo[key]
+	if not list then
+		list = {}
+		echo[key] = list
+	end
+	table.insert(list, { dv = dv, t = now })
+end
+
+-- The obstacle `o` (key `key`, seen `window` seconds late) with our recent
+-- pushes mirrored onto it. Drops entries older than the window.
+function KartPhysics.echoApply(echo: Echo, key: any, o: Obstacle, now: number, window: number): Obstacle
+	local list = echo[key]
+	if not list then
+		return o
+	end
+	local dvSum, disp = vector.zero, vector.zero
+	local keep = 0
+	for i = 1, #list do
+		local e = list[i]
+		local age = now - e.t
+		if age < window then
+			keep += 1
+			list[keep] = e
+			dvSum += e.dv
+			disp += e.dv * age
+		end
+	end
+	for i = #list, keep + 1, -1 do
+		list[i] = nil
+	end
+	if keep == 0 then
+		echo[key] = nil
+		return o
+	end
+	return { pos = o.pos - disp, look = o.look, vel = o.vel - dvSum, angVel = o.angVel }
+end
+
 -- Rigid-body substep for the internal prediction (chassis box inertia).
 local function integrate(b: Body, g: Geometry, force: vector, torque: vector, gravity: number, h: number)
 	b.vel += (force / b.mass - UP * gravity) * h
@@ -962,16 +1018,25 @@ function KartPhysics.step(cfg: KartConfig, state: State, body: Body, ctrl: Contr
 	local grounded = 0
 	local bm = cfg.Bumper
 	local contact, contactSpeed = 0, 0
+	-- per obstacle: the velocity change its bumper gave us this frame (the
+	-- caller's contact echo mirrors it onto that kart, KartPhysics.echoApply)
+	local bumps: { vector } = {}
+	if others then
+		for i = 1, #others do
+			bumps[i] = vector.zero
+		end
+	end
 	for k = 1, sub do
 		local f, t, gnd = wheelForces(cfg, g, state, b, planesAt(b, (k - 0.5) / sub), d, h, outs)
 		grounded = gnd
 		if bm and others then
 			local at = (k - 0.5) * h
-			for _, o in others do
+			for i, o in others do
 				local cf, ct, pen, closing = bumperContact(bm, b, o, at)
 				if pen > 0 then
 					f += cf
 					t += ct
+					bumps[i] += flat(cf) * (h / b.mass)
 					if contact == 0 then
 						contactSpeed = closing
 					end
@@ -995,6 +1060,7 @@ function KartPhysics.step(cfg: KartConfig, state: State, body: Body, ctrl: Contr
 		steerAngle = delta,
 		contact = contact,
 		contactSpeed = contactSpeed,
+		bumps = bumps,
 		draft = state.draft,
 	}
 end

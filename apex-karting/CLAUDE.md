@@ -115,6 +115,21 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   hitOffsetZ. The e2e bot passes A's kart as an obstacle; the mock has Player:GetNetworkPing
   (G.pings[p], default 0.06).
 - `luau tests/tools/bumps.luau -a "S SM D MA"` prints squash/bounce/peak g for typical hits.
+- Contact echo (user: "collisions feel like bumper cars", Oct 2026): each client pushes only its own
+  kart and sees the other unpushed for the network delay, so both kept pushing: rear-end 55 into 30
+  at 0.1 s delay had restitution 1.17 (0.27 without delay). KartPhysics.step returns `bumps[i]`
+  (our dv from others[i] this frame); KartController records them (echoAdd, keyed by Model) and
+  nearbyKarts takes the last lead + dt seconds of them off the other kart's velocity/position
+  (echoApply; equal masses). Only frame-to-frame: mirroring inside the substeps too made the
+  overlap look smaller and parked overlapping karts no longer eased apart. With the echo every
+  delay plays like no delay (`tests/tools/lagbumps.luau`, `-a off` to compare). Not cured: an
+  error in the lead itself shifts the other kart by its speed x the error (phantom pushes at speed).
+- Resets (user: "reset together after a crash, the karts overlap and move as one"): both landed
+  on the same centre-line sample; deep overlap at rest never eased apart (static friction, push
+  normals cancelling). RaceManager.clearPose tries the point, then +-min(width/2 - 4, ResetClear)
+  beside it, then 1-3 x ResetClear further back; if still within ResetClear of a kart it sets the
+  kart's `Ghost` attribute (KartController/KartVisuals/e2e bot treat it like quali ghosts), cleared
+  by updateGhosts once >= ResetGhostTime and clear of every kart.
 
 ## Camera notes
 - ChaseCamera owns the driving camera (Scriptable): zoom 0 = cockpit, otherwise chase distance.

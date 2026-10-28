@@ -708,6 +708,14 @@ Config.Race = {
 	GridStagger = 7,
 	GridFirstRowBack = 12, -- studs behind the start line
 	ResetCooldown = 3,
+	-- A reset puts the kart on a clear spot of the centre line (beside or a
+	-- little behind the reset point if another kart is there). If it still
+	-- overlaps a kart (both reset at once), it is a see-through ghost with no
+	-- bumpers until it is ResetClear studs (centre to centre) from every kart
+	-- and at least ResetGhostTime has passed: bumpers that start deep inside
+	-- each other lock the two karts together.
+	ResetClear = 10.5,
+	ResetGhostTime = 1.0,
 	TrackChangeCooldown = 3, -- practice: seconds between track changes
 	TrackLoadTime = 3, -- seconds before practice karts return after a track change
 	OffTrackAllowance = 60, -- studs beyond the road edge that still count as on course
@@ -960,6 +968,7 @@ export type Result = {
 	steerAngle: number,
 	contact: number, -- deepest bumper overlap with another kart this frame (studs, 0 = none)
 	contactSpeed: number, -- closing speed at the first touch this frame (studs/s)
+	bumps: { vector }, -- per obstacle (same order as `others`): horizontal velocity change its bumper gave us this frame
 	draft: number, -- slipstream 0..1
 }
 
@@ -1628,6 +1637,61 @@ local function bumperContact(bm: BumperConfig, b: Body, o: Obstacle, t: number):
 end
 KartPhysics.bumperContact = bumperContact
 
+-- Contact echo. Each client pushes only its own kart and sees the other one
+-- as it was a network delay ago, so during a hit the other kart still looks
+-- unpushed: both clients keep pushing and the karts fly apart faster than
+-- they met (0.1 s delay: a 30 km/h kart rear-ended at 55 left at 56). All karts have the
+-- same mass, so the other one got the opposite of our push: the echo keeps
+-- our pushes from the last `window` seconds (what its snapshot cannot show
+-- yet) and takes them off its velocity and position.
+export type Echo = { [any]: { { dv: vector, t: number } } }
+
+function KartPhysics.newEcho(): Echo
+	return {}
+end
+
+-- Records the push `dv` (Result.bumps[i]) the kart `key` gave us at time `now`.
+function KartPhysics.echoAdd(echo: Echo, key: any, dv: vector, now: number)
+	if dv == vector.zero then
+		return
+	end
+	local list = echo[key]
+	if not list then
+		list = {}
+		echo[key] = list
+	end
+	table.insert(list, { dv = dv, t = now })
+end
+
+-- The obstacle `o` (key `key`, seen `window` seconds late) with our recent
+-- pushes mirrored onto it. Drops entries older than the window.
+function KartPhysics.echoApply(echo: Echo, key: any, o: Obstacle, now: number, window: number): Obstacle
+	local list = echo[key]
+	if not list then
+		return o
+	end
+	local dvSum, disp = vector.zero, vector.zero
+	local keep = 0
+	for i = 1, #list do
+		local e = list[i]
+		local age = now - e.t
+		if age < window then
+			keep += 1
+			list[keep] = e
+			dvSum += e.dv
+			disp += e.dv * age
+		end
+	end
+	for i = #list, keep + 1, -1 do
+		list[i] = nil
+	end
+	if keep == 0 then
+		echo[key] = nil
+		return o
+	end
+	return { pos = o.pos - disp, look = o.look, vel = o.vel - dvSum, angVel = o.angVel }
+end
+
 -- Rigid-body substep for the internal prediction (chassis box inertia).
 local function integrate(b: Body, g: Geometry, force: vector, torque: vector, gravity: number, h: number)
 	b.vel += (force / b.mass - UP * gravity) * h
@@ -1836,16 +1900,25 @@ function KartPhysics.step(cfg: KartConfig, state: State, body: Body, ctrl: Contr
 	local grounded = 0
 	local bm = cfg.Bumper
 	local contact, contactSpeed = 0, 0
+	-- per obstacle: the velocity change its bumper gave us this frame (the
+	-- caller's contact echo mirrors it onto that kart, KartPhysics.echoApply)
+	local bumps: { vector } = {}
+	if others then
+		for i = 1, #others do
+			bumps[i] = vector.zero
+		end
+	end
 	for k = 1, sub do
 		local f, t, gnd = wheelForces(cfg, g, state, b, planesAt(b, (k - 0.5) / sub), d, h, outs)
 		grounded = gnd
 		if bm and others then
 			local at = (k - 0.5) * h
-			for _, o in others do
+			for i, o in others do
 				local cf, ct, pen, closing = bumperContact(bm, b, o, at)
 				if pen > 0 then
 					f += cf
 					t += ct
+					bumps[i] += flat(cf) * (h / b.mass)
 					if contact == 0 then
 						contactSpeed = closing
 					end
@@ -1869,6 +1942,7 @@ function KartPhysics.step(cfg: KartConfig, state: State, body: Body, ctrl: Contr
 		steerAngle = delta,
 		contact = contact,
 		contactSpeed = contactSpeed,
+		bumps = bumps,
 		draft = state.draft,
 	}
 end
@@ -5942,6 +6016,7 @@ local karts: { [Player]: Model } = {}
 local numbers: { [Player]: number } = {}
 local lastReset: { [Player]: number } = {}
 local spawnHold: { [Player]: number } = {} -- onCharacter is about to give a kart
+local ghostSince: { [Model]: number } = {} -- since when a reset kart has been a ghost
 
 -- sessions
 local practice: { [Player]: RaceProgress.Race } = {}
@@ -6868,8 +6943,68 @@ end
 ----------------------------------------------------------------------------
 -- Per-frame update
 ----------------------------------------------------------------------------
+-- Another kart (centre) closer than ResetClear to `pos`, ignoring `own`
+-- and karts on the other level of a crossing.
+local function kartNear(pos: Vector3, own: Model?): boolean
+	local clear = R.ResetClear
+	for _, k in karts do
+		local c = k.PrimaryPart
+		if k ~= own and c then
+			local d = c.Position - pos
+			if math.abs(d.Y) < 5 and d.X * d.X + d.Z * d.Z < clear * clear then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- A reset pose near (pos, fwd, up) that no other kart is sitting on: the
+-- point itself, then beside it, then a few samples further back.
+local function clearPose(own: Model, pos: vector, fwd: vector, up: vector): (vector, vector, vector)
+	local idx = TrackMath.nearest(track, pos)
+	local back = math.max(1, math.floor(R.ResetClear / track.spacing + 0.5))
+	for step = 0, 3 do
+		local smp = track.samples[TrackMath.wrap(idx - step * back, track.n)]
+		local p0, f0, u0 = pos, fwd, up
+		if step > 0 then
+			p0, f0, u0 = smp.pos, smp.fwd, smp.up
+		end
+		local right = vector.normalize(vector.cross(f0, u0))
+		local side = math.clamp(smp.width / 2 - 4, 0, R.ResetClear)
+		for _, s in { 0, 1, -1 } do
+			local p = p0 + right * (side * s)
+			if (s == 0 or side > 0) and not kartNear(v3(p), own) then
+				return p, f0, u0
+			end
+		end
+	end
+	return pos, fwd, up
+end
+
+-- Reset karts (Ghost attribute) stay ghosts until no kart is near them.
+local function updateGhosts(t: number)
+	for k in ghostSince do
+		if not k.Parent then
+			ghostSince[k] = nil
+		end
+	end
+	for _, k in karts do
+		local c = k.PrimaryPart
+		if c and k:GetAttribute("Ghost") then
+			local since = ghostSince[k] or t
+			ghostSince[k] = since
+			if t - since >= R.ResetGhostTime and not kartNear(c.Position, k) then
+				ghostSince[k] = nil
+				k:SetAttribute("Ghost", nil)
+			end
+		end
+	end
+end
+
 local function tick()
 	local t = now()
+	updateGhosts(t)
 	local dt = math.clamp(t - lastTick, 0, 0.2)
 	lastTick = t
 	local attrDue = t - lastAttr > 0.2
@@ -7141,7 +7276,12 @@ local function onRequest(player: Player, kind: unknown, arg: unknown)
 			pos, fwd, up = smp.pos, smp.fwd, smp.up
 		end
 		if pos and fwd and up then
+			pos, fwd, up = clearPose(k, pos, fwd, up)
 			KartFactory.place(k, player, v3(pos), v3(fwd), v3(up), false)
+			if kartNear(v3(pos), k) then
+				k:SetAttribute("Ghost", true)
+				ghostSince[k] = nil
+			end
 		end
 		fire(player, "Reset", {})
 	elseif kind == "Kart" then
@@ -12551,16 +12691,22 @@ end
 
 -- Other karts near ours, for the bumpers. Their positions arrive late (their
 -- driver -> server -> us), so each is moved ahead along its velocity by
--- about that delay (Config.Collision).
+-- about that delay (Config.Collision), and our own recent bumper pushes are
+-- mirrored onto it (KartPhysics.echoApply: it got the opposite push, which
+-- its late snapshot does not show yet).
 local CC = Config.Collision
 local kartsFolder: Instance? = nil
 local myPing, pingAge = 0.1, math.huge
 local others: { KartPhysics.Obstacle } = {}
-local function nearbyKarts(dt: number, here: Vector3): { KartPhysics.Obstacle }
+local otherKarts: { Model } = {} -- same order as `others`
+local echo: KartPhysics.Echo = setmetatable(KartPhysics.newEcho(), { __mode = "k" }) :: any
+local function nearbyKarts(dt: number, here: Vector3, t: number): { KartPhysics.Obstacle }
 	table.clear(others)
+	table.clear(otherKarts)
 	local folder = kartsFolder
-	-- ghosts (qualifying): nothing to bump into or draft behind
-	if not folder or workspace:GetAttribute("Ghost") then
+	-- ghosts (qualifying, or our kart just reset onto another): nothing to
+	-- bump into or draft behind
+	if not folder or workspace:GetAttribute("Ghost") or (kart and kart:GetAttribute("Ghost")) then
 		return others
 	end
 	pingAge += dt
@@ -12569,7 +12715,7 @@ local function nearbyKarts(dt: number, here: Vector3): { KartPhysics.Obstacle }
 		myPing = player:GetNetworkPing()
 	end
 	for _, m in folder:GetChildren() do
-		if m == kart or not m:IsA("Model") then
+		if m == kart or not m:IsA("Model") or m:GetAttribute("Ghost") then
 			continue
 		end
 		local c = m.PrimaryPart
@@ -12588,12 +12734,17 @@ local function nearbyKarts(dt: number, here: Vector3): { KartPhysics.Obstacle }
 			local theirPing = (owner and owner:GetAttribute("Ping") :: number?) or myPing
 			lead = math.clamp(CC.Lead + CC.PingShare * (myPing + theirPing), 0, CC.LeadMax)
 		end
-		table.insert(others, {
+		local o: KartPhysics.Obstacle = {
 			pos = vec(c.Position + vel * lead),
 			look = vec(c.CFrame.LookVector),
 			vel = vec(vel),
 			angVel = vec(c.AssemblyAngularVelocity),
-		})
+		}
+		if lead > 0 then
+			o = KartPhysics.echoApply(echo, m, o, t, lead + dt)
+		end
+		table.insert(others, o)
+		table.insert(otherKarts, m)
 	end
 	return others
 end
@@ -12635,8 +12786,12 @@ local function physicsStep(dt: number)
 		angVel = vec(c.AssemblyAngularVelocity),
 		mass = mass,
 	}
-	local res = KartPhysics.step(cfg, state, body, physControls, dt, raycast, nearbyKarts(dt, c.Position))
+	local t = os.clock()
+	local res = KartPhysics.step(cfg, state, body, physControls, dt, raycast, nearbyKarts(dt, c.Position, t))
 	telemetry = res
+	for i, m in otherKarts do
+		KartPhysics.echoAdd(echo, m, res.bumps[i], t)
+	end
 	-- a knock as the bumpers meet (not while they keep rubbing)
 	local touching = res.contact > 0
 	if touching and not wasContact then
@@ -12745,6 +12900,7 @@ type Visual = {
 	arms: { Arm }?,
 	display: TextLabel?,
 	displayAt: number,
+	ghost: boolean?, -- drawn see-through (KartVisuals ghosts)
 	steer: number,
 	engine: Sound?,
 	skid: Sound?,
@@ -13053,7 +13209,8 @@ local function skidMark(a: Vector3, b: Vector3, up: Vector3)
 end
 
 -- Ghosts: the other karts (body, wheels and driver) see-through while the
--- server says so (workspace attribute Ghost, set in qualifying).
+-- server says so: workspace attribute Ghost (qualifying, every kart) or a
+-- kart's own Ghost attribute (just reset onto another kart).
 local ghostAt = 0
 local ghostOn = false
 local function fade(root: Instance?, amount: number)
@@ -13075,21 +13232,26 @@ local function setGhost(model: Model, v: Visual, amount: number)
 end
 
 local function updateGhosts()
-	local on = workspace:GetAttribute("Ghost") == true
-	-- new karts and new characters turn up: refresh twice a second while on
-	if on == ghostOn and (not on or os.clock() - ghostAt < 0.5) then
+	local all = workspace:GetAttribute("Ghost") == true
+	-- new karts and new characters turn up: refresh twice a second
+	if all == ghostOn and os.clock() - ghostAt < 0.5 then
 		return
 	end
-	ghostOn = on
 	ghostAt = os.clock()
 	local mine = KartController.kart()
-	local amount = if on then Config.Race.GhostTransparency else 0
+	local amount = Config.Race.GhostTransparency
 	for model, v in visuals do
 		if model ~= mine then
-			setGhost(model, v, amount)
+			local on = all or model:GetAttribute("Ghost") == true
+			if on then
+				setGhost(model, v, amount)
+			elseif v.ghost then
+				setGhost(model, v, 0)
+			end
+			v.ghost = on
 		end
 	end
-	if not on then
+	if ghostOn and not all then
 		-- the drivers outlive their qualifying karts (new karts on the grid)
 		for _, p in Players:GetPlayers() do
 			if p ~= Players.LocalPlayer then
@@ -13097,6 +13259,7 @@ local function updateGhosts()
 			end
 		end
 	end
+	ghostOn = all
 end
 
 local function update(dt: number)

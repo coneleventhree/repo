@@ -104,6 +104,7 @@ local karts: { [Player]: Model } = {}
 local numbers: { [Player]: number } = {}
 local lastReset: { [Player]: number } = {}
 local spawnHold: { [Player]: number } = {} -- onCharacter is about to give a kart
+local ghostSince: { [Model]: number } = {} -- since when a reset kart has been a ghost
 
 -- sessions
 local practice: { [Player]: RaceProgress.Race } = {}
@@ -1030,8 +1031,68 @@ end
 ----------------------------------------------------------------------------
 -- Per-frame update
 ----------------------------------------------------------------------------
+-- Another kart (centre) closer than ResetClear to `pos`, ignoring `own`
+-- and karts on the other level of a crossing.
+local function kartNear(pos: Vector3, own: Model?): boolean
+	local clear = R.ResetClear
+	for _, k in karts do
+		local c = k.PrimaryPart
+		if k ~= own and c then
+			local d = c.Position - pos
+			if math.abs(d.Y) < 5 and d.X * d.X + d.Z * d.Z < clear * clear then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- A reset pose near (pos, fwd, up) that no other kart is sitting on: the
+-- point itself, then beside it, then a few samples further back.
+local function clearPose(own: Model, pos: vector, fwd: vector, up: vector): (vector, vector, vector)
+	local idx = TrackMath.nearest(track, pos)
+	local back = math.max(1, math.floor(R.ResetClear / track.spacing + 0.5))
+	for step = 0, 3 do
+		local smp = track.samples[TrackMath.wrap(idx - step * back, track.n)]
+		local p0, f0, u0 = pos, fwd, up
+		if step > 0 then
+			p0, f0, u0 = smp.pos, smp.fwd, smp.up
+		end
+		local right = vector.normalize(vector.cross(f0, u0))
+		local side = math.clamp(smp.width / 2 - 4, 0, R.ResetClear)
+		for _, s in { 0, 1, -1 } do
+			local p = p0 + right * (side * s)
+			if (s == 0 or side > 0) and not kartNear(v3(p), own) then
+				return p, f0, u0
+			end
+		end
+	end
+	return pos, fwd, up
+end
+
+-- Reset karts (Ghost attribute) stay ghosts until no kart is near them.
+local function updateGhosts(t: number)
+	for k in ghostSince do
+		if not k.Parent then
+			ghostSince[k] = nil
+		end
+	end
+	for _, k in karts do
+		local c = k.PrimaryPart
+		if c and k:GetAttribute("Ghost") then
+			local since = ghostSince[k] or t
+			ghostSince[k] = since
+			if t - since >= R.ResetGhostTime and not kartNear(c.Position, k) then
+				ghostSince[k] = nil
+				k:SetAttribute("Ghost", nil)
+			end
+		end
+	end
+end
+
 local function tick()
 	local t = now()
+	updateGhosts(t)
 	local dt = math.clamp(t - lastTick, 0, 0.2)
 	lastTick = t
 	local attrDue = t - lastAttr > 0.2
@@ -1303,7 +1364,12 @@ local function onRequest(player: Player, kind: unknown, arg: unknown)
 			pos, fwd, up = smp.pos, smp.fwd, smp.up
 		end
 		if pos and fwd and up then
+			pos, fwd, up = clearPose(k, pos, fwd, up)
 			KartFactory.place(k, player, v3(pos), v3(fwd), v3(up), false)
+			if kartNear(v3(pos), k) then
+				k:SetAttribute("Ghost", true)
+				ghostSince[k] = nil
+			end
 		end
 		fire(player, "Reset", {})
 	elseif kind == "Kart" then

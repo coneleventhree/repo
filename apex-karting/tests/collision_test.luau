@@ -1,8 +1,8 @@
 -- Kart-to-kart bumper contact: two karts on flat ground, each stepped by
 -- KartPhysics with the other as an obstacle (the way two clients do it).
 -- Checks that hits push, shove and spin karts believably and never launch
--- them, at 60 and 20 fps, and that the network lead cures most of a
--- 0.15 s delay. Run from the project root:  luau tests/collision_test.luau
+-- them, at 60 and 20 fps, that the network lead cures most of a 0.15 s
+-- delay and that the contact echo keeps a delayed hit from gaining energy. Run from the project root:  luau tests/collision_test.luau
 local Config = require("../src/shared/Config")
 local KartPhysics = require("../src/shared/KartPhysics")
 local World = require("./lib/world")
@@ -225,6 +225,45 @@ do
 	check(math.abs(led.touchOverlap or 99) < 0.5, "extrapolating by the delay makes the push start at the real touch")
 	print(string.format("    deepest overlap: %.2f without lead, %.2f with, %.2f with no delay", raw.maxPen, led.maxPen, fresh.maxPen))
 	check(math.abs(led.maxPen - fresh.maxPen) < math.abs(raw.maxPen - fresh.maxPen) + 0.05, "and the hit plays out closer to the no-delay one")
+end
+
+----------------------------------------------------------------------------
+print("== Network delay 0.1 s, rear-end 55 into 30: the contact echo ==")
+do
+	-- each client pushes only its own kart and sees the other unpushed for
+	-- the delay; without the echo both keep pushing and the hit gains energy
+	local function trial(useEcho: boolean): (number, number)
+		local a = newKart(0, 0, EAST, 55)
+		local b = newKart(bm.Front + bm.Rear + 12, 0, EAST, 30)
+		local delay = 0.1
+		local lag = math.floor(delay / a.frame + 0.5)
+		local hA, hB = {}, {}
+		local eA, eB = KartPhysics.newEcho(), KartPhysics.newEcho()
+		for _ = 1, math.floor(1.5 / a.frame) do
+			table.insert(hA, a:obstacle())
+			table.insert(hB, b:obstacle())
+			local function seen(h)
+				local o = h[math.max(1, #h - lag)]
+				return { pos = o.pos + o.vel * delay, look = o.look, vel = o.vel, angVel = o.angVel }
+			end
+			local sb, sa = seen(hB), seen(hA)
+			if useEcho then
+				sb = KartPhysics.echoApply(eA, "b", sb, a.t, delay + a.frame)
+				sa = KartPhysics.echoApply(eB, "a", sa, a.t, delay + a.frame)
+			end
+			local now = a.t
+			local ra, rb = a:step({ sb }), b:step({ sa })
+			KartPhysics.echoAdd(eA, "b", ra.bumps[1], now)
+			KartPhysics.echoAdd(eB, "a", rb.bumps[1], now)
+		end
+		return forward(a), forward(b)
+	end
+	local a0, b0 = trial(false)
+	local a1, b1 = trial(true)
+	local e0, e1 = (b0 - a0) / 25, (b1 - a1) / 25
+	print(string.format("    after the hit: %.1f / %.1f km/h without echo (bounce %.2f), %.1f / %.1f with (bounce %.2f)", a0, b0, e0, a1, b1, e1))
+	check(e0 > 0.9, "without the echo the delayed hit bounces like bumper cars")
+	check(e1 < 0.45 and b1 < 55 and a1 + b1 < 55 + 30, "with it the struck kart leaves slower than the hit and no momentum is made")
 end
 
 ----------------------------------------------------------------------------

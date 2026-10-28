@@ -34,6 +34,7 @@ type Visual = {
 	arms: { Arm }?,
 	display: TextLabel?,
 	displayAt: number,
+	ghost: boolean?, -- drawn see-through (KartVisuals ghosts)
 	steer: number,
 	engine: Sound?,
 	skid: Sound?,
@@ -342,7 +343,8 @@ local function skidMark(a: Vector3, b: Vector3, up: Vector3)
 end
 
 -- Ghosts: the other karts (body, wheels and driver) see-through while the
--- server says so (workspace attribute Ghost, set in qualifying).
+-- server says so: workspace attribute Ghost (qualifying, every kart) or a
+-- kart's own Ghost attribute (just reset onto another kart).
 local ghostAt = 0
 local ghostOn = false
 local function fade(root: Instance?, amount: number)
@@ -364,21 +366,26 @@ local function setGhost(model: Model, v: Visual, amount: number)
 end
 
 local function updateGhosts()
-	local on = workspace:GetAttribute("Ghost") == true
-	-- new karts and new characters turn up: refresh twice a second while on
-	if on == ghostOn and (not on or os.clock() - ghostAt < 0.5) then
+	local all = workspace:GetAttribute("Ghost") == true
+	-- new karts and new characters turn up: refresh twice a second
+	if all == ghostOn and os.clock() - ghostAt < 0.5 then
 		return
 	end
-	ghostOn = on
 	ghostAt = os.clock()
 	local mine = KartController.kart()
-	local amount = if on then Config.Race.GhostTransparency else 0
+	local amount = Config.Race.GhostTransparency
 	for model, v in visuals do
 		if model ~= mine then
-			setGhost(model, v, amount)
+			local on = all or model:GetAttribute("Ghost") == true
+			if on then
+				setGhost(model, v, amount)
+			elseif v.ghost then
+				setGhost(model, v, 0)
+			end
+			v.ghost = on
 		end
 	end
-	if not on then
+	if ghostOn and not all then
 		-- the drivers outlive their qualifying karts (new karts on the grid)
 		for _, p in Players:GetPlayers() do
 			if p ~= Players.LocalPlayer then
@@ -386,6 +393,7 @@ local function updateGhosts()
 			end
 		end
 	end
+	ghostOn = all
 end
 
 local function update(dt: number)

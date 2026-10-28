@@ -419,7 +419,7 @@ local function startBot(player)
 			-- none in ghost qualifying, like KartController
 			local others = {}
 			local ka = A and kartOf(A)
-			if ka and ka.PrimaryPart and not ws:GetAttribute("Ghost") then
+			if ka and ka.PrimaryPart and not ws:GetAttribute("Ghost") and not ka:GetAttribute("Ghost") and not k:GetAttribute("Ghost") then
 				local pa = ka.PrimaryPart
 				table.insert(others, { pos = pa.Position, look = pa.CFrame.LookVector, vel = pa.AssemblyLinearVelocity, angVel = pa.AssemblyAngularVelocity })
 			end
@@ -1196,6 +1196,62 @@ do
 	driveA, holdB = true, false
 	pilotA.hint, pilotB.hint = nil, nil
 	noErrors("bumpers")
+end
+
+-- both karts thrown off at the same place and reset together: the second
+-- one must not land on the first (overlapping bumpers lock karts together);
+-- a kart reset onto another anyway is a ghost until it is clear
+do
+	local R = Config.Race
+	driveA, holdB = false, true
+	G.gamepad = { r2 = 0, l2 = 0, x = 0 }
+	local ka, kb = kartOf(A), kartOf(B)
+	local smp = track.samples[200]
+	local grass = smp.pos + smp.right * (smp.width / 2 + 30) + Vector3.new(0, 1.2, 0)
+	ka:PivotTo(D.CFrame.lookAt(grass, grass + smp.fwd))
+	kb:PivotTo(D.CFrame.lookAt(grass + smp.fwd * 9, grass + smp.fwd * 10))
+	for _, k in { ka, kb } do
+		k.PrimaryPart.AssemblyLinearVelocity = Vector3.zero
+		k.PrimaryPart.AssemblyAngularVelocity = Vector3.zero
+	end
+	-- (kept short: this runs in the intermission, which the next test times)
+	G.run(0.5)
+	G.pressKey("R")
+	botRequest("Reset")
+	G.run(0.3)
+	G.releaseKey("R")
+	G.run(0.7)
+	ka, kb = kartOf(A), kartOf(B)
+	local pa, pb = ka.PrimaryPart.Position, kb.PrimaryPart.Position
+	local gap = Vector3.new(pb.X - pa.X, 0, pb.Z - pa.Z).Magnitude
+	local ia, la = TrackMath.nearest(track, pa)
+	local ib, lb = TrackMath.nearest(track, pb)
+	check(gap >= R.ResetClear - 0.5, string.format("two karts reset together land apart (%.1f studs between centres)", gap))
+	check(math.abs(la) < track.samples[ia].width / 2 - 2 and math.abs(lb) < track.samples[ib].width / 2 - 2, string.format("both on the road (lateral %.1f / %.1f)", la, lb))
+
+	-- B's kart dropped right on ours as a ghost: our client ignores it
+	local before = ka.PrimaryPart.Position
+	kb:SetAttribute("Ghost", true)
+	kb:PivotTo(ka:GetPivot())
+	kb.PrimaryPart.AssemblyLinearVelocity = Vector3.zero
+	local touched = false
+	G.run(1, function()
+		local tele = KC.telemetry()
+		touched = touched or (tele ~= nil and tele.contact > 0)
+		return false
+	end)
+	local moved = (ka.PrimaryPart.Position - before).Magnitude
+	check(not touched and moved < 0.5, string.format("a ghost kart on top of ours does not push it (moved %.2f studs)", moved))
+	check(math.abs(kb.PrimaryPart.LocalTransparencyModifier - R.GhostTransparency) < 1e-6, "and is drawn see-through")
+	check(kb:GetAttribute("Ghost") == true, "it stays a ghost while it sits on our kart")
+	kb:PivotTo(ka:GetPivot() * D.CFrame.new(0, 0, -(R.ResetClear + 6)))
+	kb.PrimaryPart.AssemblyLinearVelocity = Vector3.zero
+	G.run(0.4)
+	check(kb:GetAttribute("Ghost") == nil, "clear of every kart, it is solid again")
+	check(kb.PrimaryPart.LocalTransparencyModifier == 0, "and drawn solid")
+	driveA, holdB = true, false
+	pilotA.hint, pilotB.hint = nil, nil
+	noErrors("reset onto another kart")
 end
 check(ws:GetAttribute("RaceState") == "Intermission", "two players -> Intermission")
 check(hud().Banner.Text.Text:find("QUALIFYING IN") ~= nil, "banner counts down to qualifying: " .. hud().Banner.Text.Text)
