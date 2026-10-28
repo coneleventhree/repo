@@ -77,7 +77,7 @@ Hillside와 Suzuka에는 언덕이 있고 나머지는 평평한 전용 서킷�
 
 ## 열고 테스트하기
 
-1. Roblox Studio → File → Open from File → `A1KartRacing.rbxlx`
+1. Roblox Studio → File → Open from File → [`build/A1KartRacing.rbxlx`](build/A1KartRacing.rbxlx)
 2. **혼자 테스트**: Play(F5) → 메인 메뉴. PRACTICE → 트랙 고르고 DRIVE → 이 서버가 연습 모드로 바뀌고 카트에 앉아요. 랩 타임이 기록돼요.
    연습 중에 **M**(또는 화면의 TRACK 버튼)을 누르고 트랙 카드를 클릭하거나 숫자 **1~6**을 누르면 바로 그 트랙으로 바뀌어요(1 Tampines, 2 Silverstone, 3 Lakeside, 4 Hillside, 5 Harbour, 6 Suzuka). LOBBY 두 번 → 메뉴로.
    PRIVATE ROOM → CREATE A ROOM → 대기실에서 START RACE로 혼자 퀄리·레이스까지 해볼 수 있어요. (Studio에서 KICK은 그 플레이어 창을 끊어요: 서버가 하나뿐이라 로비로 보낼 곳이 없어서요.)
@@ -369,7 +369,7 @@ luau tests/tools/laps.luau       # 모든 트랙 자동 주행 랩타임·최고
 luau tests/tools/bank.luau       # 반지름 12.6 m 헤어핀을 평평할 때와 뱅크 8/12/15°일 때 몇 km/h로 도는지
 luau tests/tools/dump_world.luau -a Silverstone > world.txt && python3 tests/tools/render.py world.txt previews   # 미리보기 그림 (-a 생략 = 첫 트랙, PODIUM_ONLY=1 = 시상대만)
 luau tests/tools/dump_track.luau -a Silverstone    # 트랙 샘플 CSV
-rojo build default.project.json -o A1KartRacing.rbxlx
+rojo build default.project.json -o build/A1KartRacing.rbxlx
 ```
 
 `e2e_test`는 Roblox API 정의로 검증하는 mock 런타임에서 실제 서버·클라이언트 스크립트를 돌려요. Studio에서 직접 돌려본 건 아니라서, Output 창에 빨간 에러가 뜨면 그 줄을 알려주세요.

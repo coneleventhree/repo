@@ -16,7 +16,9 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
 - The place file has no hand-built parts; the server builds everything at start.
 - Physics changes: run `luau tests/physics_test.luau` (includes autopilot laps at 60/30/20 fps)
   and `luau tests/tools/agility.luau` (turn radius / lateral g per speed).
-- Any script change: `python3 tests/mock/gen.py && luau tests/e2e_test.luau`.
+- Any script change: `python3 tests/mock/gen.py globalTypes.d.luau && luau tests/e2e_test.luau`,
+  then rebuild and commit the place file: `rojo build default.project.json -o build/A1KartRacing.rbxlx`
+  (the user only downloads that file from GitHub; they do not run the tools).
   The mock rejects unknown members and wrong value types using luau-lsp's Roblox definitions
   (`gen.py` takes the path to `globalTypes.d.luau`).
 - Type check: `rojo sourcemap default.project.json -o sourcemap.json` then
