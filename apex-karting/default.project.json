@@ -1,0 +1,65 @@
+{
+  "name": "A1KartRacing",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+    "ReplicatedFirst": {
+      "Loading": {
+        "$path": "src/first"
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CharacterUseJumpPower": false,
+        "CharacterJumpHeight": 7.2,
+        "CameraMaxZoomDistance": 120
+      },
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+    "Workspace": {
+      "$properties": {
+        "StreamingEnabled": false,
+        "Gravity": 196.2
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Technology": "Future",
+        "ClockTime": 14.6,
+        "Brightness": 2.6,
+        "GlobalShadows": true,
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "OutdoorAmbient": [
+          0.55,
+          0.55,
+          0.6
+        ],
+        "Ambient": [
+          0.25,
+          0.25,
+          0.28
+        ],
+        "GeographicLatitude": 1.35
+      }
+    },
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}
