@@ -505,14 +505,17 @@ function TrackBuilder.ground(track: TrackMath.Track, root: Instance)
 	-- pit lane markings: speed-limit line along the wall side and a box per garage
 	local paint = folder
 	local lineProps = { Color = COLORS.line, Material = Enum.Material.SmoothPlastic }
-	local zLine = lane.minZ + 1.2
+	-- (the garage side of the lane: its far edge from the main straight)
+	local back = if P.side < 0 then lane.minZ else lane.maxZ
+	local inward = -P.side
+	local zLine = back + inward * 1.2
 	Build.strip(paint, Vector3.new(lane.minX + 2, 0, zLine), Vector3.new(lane.maxX - 2, 0, zLine), UPV, 0.5, lineProps)
 	local g = P.garages
 	local bays = math.max(1, math.floor((g.maxX - g.minX) / 28))
 	local bayW = (g.maxX - g.minX) / bays
 	for b = 0, bays do
 		local x = g.minX + b * bayW
-		Build.strip(paint, Vector3.new(x, 0, lane.minZ + 1.5), Vector3.new(x, 0, lane.minZ + 9), UPV, 0.4, lineProps)
+		Build.strip(paint, Vector3.new(x, 0, back + inward * 1.5), Vector3.new(x, 0, back + inward * 9), UPV, 0.4, lineProps)
 	end
 	return folder
 end

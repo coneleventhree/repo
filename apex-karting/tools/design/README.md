@@ -30,3 +30,26 @@ Pipeline:
 ## promo/
 `promo.py` renders thumbnails from `tests/tools/dump_scene.luau` output (adds simple
 drivers); `make_icon.py` made the 512 px icon.
+
+## gp/ (Catalunya, Zandvoort, Yas Marina)
+Unlike suzuka/, these run as they are: `common.py` reads the work folder from
+`GP_WORK` (default: the scratchpad it was made in). Put in it:
+- `es-1991.geojson`, `nl-1948.geojson`, `ae-2009.geojson` from
+  https://github.com/bacinger/f1-circuits (`circuits/`, MIT): current layouts,
+  lap starting at the start line.
+- The Copernicus GLO-30 DEM tiles named in `common.DEM`
+  (`https://copernicus-dem-30m.s3.amazonaws.com/<name>/<name>.tif`).
+Python also needs rasterio.
+
+1. `tracks.py` - per circuit: scale K, min radius, centre-line gap SEP, height
+   scale KY and grade limit, straights to shorten (`cuts`, each with the
+   straights pointing the other way that give up the same length so the
+   corners in between stay put), corner names by real distance, banking,
+   height floors/caps (`ymin`/`ymax`).
+2. `python3 -I fit_gp.py <id> --plot` - segments from the curvature, least
+   squares fit to the (shortened) real line, heights from the DEM ->
+   `<id>.lua`, `<id>.json`, `<id>.png` (plan vs real, height profile).
+3. `python3 -I put_tracks.py` - writes the three into `src/shared/TrackData.luau`
+   (replaces their blocks, adds them to Order / Tracks).
+4. `luau tests/layout_test.luau`, `luau tests/physics_test.luau`,
+   `luau tests/tools/laps.luau`.

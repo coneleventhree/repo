@@ -248,9 +248,14 @@ everything = [p for p in parts if "Workspace.Alice" not in p["path"]]
 # the podium in the paddock, from where the podium camera looks at it
 podium = [p for p in parts if ".Pits.Podium." in p["path"]]
 step1 = [p for p in podium if p["path"].endswith(".Step1")]
+back = [p for p in podium if p["path"].endswith(".Backdrop")]
 if step1:
     sp = step1[0]["pos"]
-    render(everything, sp + np.array([0, 5.5, 30]), sp + np.array([0, 2.5, 0]), f"{out_dir}/view_podium.png", fov=55, size=(14, 8), title="podium", segs=12)
+    # in front of the steps, away from the backdrop (the pits, and so the
+    # podium, are mirrored to the other side on an anticlockwise circuit)
+    away = 1.0 if not back or back[0]["pos"][2] < sp[2] else -1.0
+    eye = sp + np.array([0, 5.5, 30 * away])
+    render(everything, eye, sp + np.array([0, 2.5, 0]), f"{out_dir}/view_podium.png", fov=55, size=(14, 8), title="podium", segs=12)
 if os.environ.get("PODIUM_ONLY"):
     sys.exit(0)
 xs = [p["pos"][0] for p in parts if "Perimeter" in p["path"] and "CarPark" not in p["path"]]

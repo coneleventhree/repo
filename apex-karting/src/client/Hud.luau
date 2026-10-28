@@ -728,7 +728,7 @@ local function updateTrackPanel(state: string?, remaining: number)
 		local tag = card:FindFirstChild("Tag") :: TextLabel
 		tag.Text = if here then "NOW" else ""
 		local key = card:FindFirstChild("Key") :: TextLabel
-		key.Text = if UserInputService.KeyboardEnabled and i <= 6 then tostring(i) else ""
+		key.Text = if UserInputService.KeyboardEnabled and i <= 9 then tostring(i) else ""
 	end
 	for id, card in trackCards do
 		-- with one circuit there is nothing to pick, only the length and READY
@@ -1316,6 +1316,10 @@ function Hud.init(remotes: Folder)
 		-- the track / vote / room panel at the top in the middle, under the
 		-- banner: down the left it covered the steering buttons
 		trackPanel.Position = UDim2.fromOffset(0, 58)
+	else
+		-- in the middle under the banner too: nine cards in two columns are
+		-- too tall for the space under the lap times
+		trackPanel.Position = UDim2.fromOffset(0, 118)
 	end
 
 	-- spectate bar
@@ -1348,10 +1352,7 @@ function Hud.init(remotes: Folder)
 	hintText.AnchorPoint = Vector2.new(0.5, 1)
 
 	-- whole-pixel scale, and centred elements snapped to whole pixels
-	local toCentre: { GuiObject } = { banner, warnText, bigText, toast, lightsFrame, spectateBar, hintText }
-	if UserInputService.TouchEnabled then
-		table.insert(toCentre, trackPanel)
-	end
+	local toCentre: { GuiObject } = { banner, warnText, bigText, toast, lightsFrame, spectateBar, hintText, trackPanel }
 	for _, obj in toCentre do
 		centre(obj)
 	end
@@ -1374,7 +1375,7 @@ function Hud.init(remotes: Folder)
 	end)
 	Input.onAction("Tracks", onTracksKey)
 	Input.onAction("TrackNext", onTrackNext)
-	for n = 1, 6 do
+	for n = 1, 9 do
 		Input.onAction("Track" .. n, function()
 			onTrackNumber(n)
 		end)

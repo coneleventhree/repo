@@ -2,8 +2,8 @@
 (Formerly "Apex Karting"; renamed by the user. The DataStore name ApexKarting_v1 stays so saved
 bests survive. The repo folder is still apex-karting.)
 
-Roblox kart racer (realistic physics, players only, no items, six tracks; Hillside has hills and banking,
-Suzuka is a 3D figure of eight with a bridge;
+Roblox kart racer (realistic physics, players only, no items, nine tracks; Hillside has hills and banking,
+Suzuka is a 3D figure of eight with a bridge, Catalunya / Zandvoort / Yas Marina are real GP circuits with real heights;
 lobby menu with RACE matchmaking / PRACTICE / PRIVATE ROOM and a loading screen). Rojo project.
 Made for playing with friends: no anti-cheat / anti-troll work (the user said so).
 
@@ -198,6 +198,25 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   headroom). Width 28 (main straight 30), Laps 2 (1/2/3), Qualifying 180, Trees, CornerBoards,
   Bridge = "Main straight". Autopilot 69.7 s. Gyaku Bank off-camber was tried: even -1.5 deg
   throws the autopilot off at the left-right flick, so it is flat.
+- GP circuits Catalunya / Zandvoort / YasMarina (user, Oct 28 2026: "Spanish, Dutch, Abu Dhabi GP with
+  elevation, sized for the kart; long straights may be changed, they are dull in a kart"). Made with
+  tools/design/gp (see tools/design/README.md): bacinger/f1-circuits GeoJSON (current layouts: Barcelona
+  without the chicane, Yas 2021) at K 0.8 studs/m, segments from the curvature, least squares to the real
+  line. Cuts: each shortened straight is paired with straights pointing the other way that give up the
+  same length (closes the lap without moving the corners between them); the free pair is picked
+  automatically (long, far from parallel). Heights: Copernicus GLO-30 (a DSM: trees/stands stick up)
+  -> low percentile + Gaussian + grade limit, datum = 5th percentile (= lawn), KY = K (Zandvoort 1.3,
+  dunes read better), start and grid straights level. Autopilot 51.6 / 53.3 / 56.4 s, lengths 2/3/5.
+  Zandvoort lessons: the Hugenholtz exit runs past Hans Ernst's 48-stud gravel; a raised road more than
+  CrossingClear (6) above another road's prepared surface gets no embankment (taken for a bridge) ->
+  cliff. Fixed with `ymax` (exit <= 5, the banked hairpin 3.2..3.6: a 12 deg bank lifts the outer edge
+  ~2), not by pushing the roads apart (pairsep squeezed the hairpin, walls then hit the road).
+- Anticlockwise laps (Yas Marina): TrackMath accepts -360. TrackLayout.pitSide = +1 puts the pits on the
+  right of the main straight (the outside); paddock() mirrors its rects (P.side), the main grandstand
+  goes to the other side, Scenery.pits draws on the left (paddock(track, true)) then mirrorZ()s every part
+  (rotation M R Nx: proper, wedges keep their shape, text reads right), podium 2nd/3rd swapped first.
+  paddock() also makes the plaza shallower (to 40) / shorter when a road comes within PaddockClear 44
+  (Yas: Turn 15 behind it); the podium then sits at its back and the camera mark comes closer.
 - Crossings (figure of eight): TrackMath accepts corners summing to 0 deg. TrackLayout.crossings
   (cached per Ground): an upper sample over another road's centre line (2D, d < width/2, > 6
   studs higher) -> `deck` = upper samples whose road+bands reach the lower road's band edge + 3,
@@ -247,6 +266,8 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   has ambient 105/110/130, outdoor 125/132/160, exposure 0.6, ColorCorrection Brightness 0.04
   (`lift`) and a thin, lighter haze; Cloudy (Silverstone) exposure 0.2, clouds 0.5, a little more
   ambient. Sunset is unused since Pine Valley went.
+- Menus with nine tracks: Menu practice cards are 3 x 3 (CARD_H 100), the HUD track panel sits centred
+  under the banner on desktop too (it ran off the bottom down the left), number keys 1-9.
 - Mock note: a static part that leaves and re-enters workspace keeps its ray-index entry
   (fixed in tests/mock/roblox.luau; before, it became "dynamic" and rays crawled). Likewise
   parts placed while outside workspace (circuits built into ServerStorage after the ray index

@@ -346,7 +346,7 @@ do
 end
 
 ----------------------------------------------------------------------------
-for _, run in { { "Tampines", 60 }, { "Tampines", 30 }, { "Tampines", 20 }, { "Silverstone", 60 }, { "Silverstone", 20 }, { "Lakeside", 60 }, { "Hillside", 60 }, { "Hillside", 20 }, { "Harbour", 60 }, { "Suzuka", 60 }, { "Suzuka", 20 } } do
+for _, run in { { "Tampines", 60 }, { "Tampines", 30 }, { "Tampines", 20 }, { "Silverstone", 60 }, { "Silverstone", 20 }, { "Lakeside", 60 }, { "Hillside", 60 }, { "Hillside", 20 }, { "Harbour", 60 }, { "Suzuka", 60 }, { "Suzuka", 20 }, { "Catalunya", 60 }, { "Catalunya", 20 }, { "Zandvoort", 60 }, { "Zandvoort", 20 }, { "YasMarina", 60 }, { "YasMarina", 20 } } do
 local spec, fps = TrackData.get(run[1]), run[2]
 print(string.format("== Autopilot lap of %s (%d fps) ==", spec.Name, fps))
 do

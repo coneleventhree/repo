@@ -266,7 +266,10 @@ end
 -- a backdrop, a camera mark for the podium view and a confetti cannon.
 -- RaceManager puts the top three karts on Step1..3 after a race and turns
 -- the confetti on (the ParticleEmitters in Confetti) while the results are up.
-function Scenery.podium(parent: Instance, x: number, z: number): Folder
+-- `mirrored`: the caller mirrors it across z afterwards (pits on the right),
+-- so second and third swap sides here to stay on the winner's right and left.
+-- `camDist`: how far in front of the steps the camera mark goes (30).
+function Scenery.podium(parent: Instance, x: number, z: number, mirrored: boolean?, camDist: number?): Folder
 	local folder = Build.folder(parent, "Podium")
 	local base = 0.6
 	Build.part(folder, {
@@ -284,7 +287,7 @@ function Scenery.podium(parent: Instance, x: number, z: number): Folder
 		{ place = 3, dx = 11, h = 1.4, color = Color3.fromRGB(196, 120, 60) },
 	}
 	for _, sp in specs do
-		local pos = Vector3.new(x + sp.dx, base + sp.h / 2, z)
+		local pos = Vector3.new(x + (if mirrored then -sp.dx else sp.dx), base + sp.h / 2, z)
 		local step = Build.part(folder, {
 			Name = "Step" .. sp.place,
 			Size = Vector3.new(10.5, sp.h, 9.5),
@@ -326,7 +329,7 @@ function Scenery.podium(parent: Instance, x: number, z: number): Folder
 		})
 	end
 	-- where the podium camera sits, looking at the steps
-	local camPos = Vector3.new(x, 9, z + 30)
+	local camPos = Vector3.new(x, 9, z + (camDist or 30))
 	Build.decor(folder, {
 		Name = "Camera",
 		Size = Vector3.new(1, 1, 1),
@@ -364,9 +367,30 @@ function Scenery.podium(parent: Instance, x: number, z: number): Folder
 	return folder
 end
 
--- Pit wall, garages with race control, and the paddock with the spawn.
+-- Mirrors every part under `root` across the plane z = 0. The rotation is
+-- M R Nx (M: the world mirror, Nx: a mirror of the part's own X axis), a
+-- proper rotation, so blocks and wedges keep their shapes and signs still
+-- read the right way round.
+local function mirrorZ(root: Instance)
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") then
+			local cf = d.CFrame
+			local p, r, u, b = cf.Position, cf.RightVector, cf.UpVector, -cf.LookVector
+			d.CFrame = CFrame.fromMatrix(
+				Vector3.new(p.X, p.Y, -p.Z),
+				Vector3.new(-r.X, -r.Y, r.Z),
+				Vector3.new(u.X, u.Y, -u.Z),
+				Vector3.new(b.X, b.Y, -b.Z)
+			)
+		end
+	end
+end
+
+-- Pit wall, garages with race control, and the paddock with the spawn. Drawn
+-- on the left of the main straight, then mirrored if the pits go on the
+-- right (TrackLayout.pitSide).
 function Scenery.pits(track: TrackMath.Track, spec: any, parent: Instance): SpawnLocation
-	local P = TrackLayout.paddock(track)
+	local P = TrackLayout.paddock(track, true)
 	local folder = Build.folder(parent, "Pits")
 
 	-- pit wall (concrete, fence on top, boards facing the main straight)
@@ -550,7 +574,10 @@ function Scenery.pits(track: TrackMath.Track, spec: any, parent: Instance): Spaw
 
 	-- paddock: podium, spawn and how-to-play board
 	local plaza = P.plaza
-	Scenery.podium(folder, (plaza.minX + plaza.maxX) / 2 + 70, plaza.minZ + 24)
+	-- (a shallow paddock: the podium goes to the back, the camera stays in front of the garages)
+	local plazaDepth = plaza.maxZ - plaza.minZ
+	local podZ = math.max(10, math.min(24, plazaDepth - 32))
+	Scenery.podium(folder, (plaza.minX + plaza.maxX) / 2 + 70, plaza.minZ + podZ, TrackLayout.pitSide(track) > 0, math.min(30, plazaDepth - podZ - 2))
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "LobbySpawn"
 	spawn.Anchored = true
@@ -601,6 +628,9 @@ function Scenery.pits(track: TrackMath.Track, spec: any, parent: Instance): Spaw
 	pad.PaddingTop = UDim.new(0.06, 0)
 	pad.PaddingBottom = UDim.new(0.06, 0)
 	pad.Parent = text
+	if TrackLayout.pitSide(track) > 0 then
+		mirrorZ(folder)
+	end
 	return spawn
 end
 

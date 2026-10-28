@@ -1,6 +1,6 @@
 # A1 Kart Racing
 
-리얼 물리 기반 Roblox 고카트 레이싱 게임이에요. 플레이어끼리만 레이스하고, 아이템은 없어요. 트랙은 6개예요. 접속하면 로딩 화면 → 메인 메뉴(로비)에서 **RACE**(다른 플레이어와 빠른 매칭), **PRACTICE**(맵을 골라 혼자 연습), **PRIVATE ROOM**(친구와 4자리 방 코드)을 골라요. 레이스 한 라운드는 트랙·길이 투표 → 1랩 고스트 퀄리파잉(예선) → 그리드 → 레이스 → 짧은 포디움 순서로 돌아가요.
+리얼 물리 기반 Roblox 고카트 레이싱 게임이에요. 플레이어끼리만 레이스하고, 아이템은 없어요. 트랙은 9개예요. 접속하면 로딩 화면 → 메인 메뉴(로비)에서 **RACE**(다른 플레이어와 빠른 매칭), **PRACTICE**(맵을 골라 혼자 연습), **PRIVATE ROOM**(친구와 4자리 방 코드)을 골라요. 레이스 한 라운드는 트랙·길이 투표 → 1랩 고스트 퀄리파잉(예선) → 그리드 → 레이스 → 짧은 포디움 순서로 돌아가요.
 
 | 트랙 | 길이 | 랩 | 성격 |
 |---|---|---|---|
@@ -10,8 +10,11 @@
 | Hillside Raceway | 3,776 studs (약 1.06 km) | 2 / 3 / 5 | 언덕 서킷: 오르막·내리막(높이차 약 8.8 m), 오르막 끝 고속 킹크(Sling), 뱅크 코너 3개, 핸들을 계속 잡고 도는 긴 고속 코너, 소나무 |
 | Harbour Night Circuit | 3,110 studs (약 0.87 km) | 2 / 3 / 5 | 야간 레이스, 가로등 조명, 긴 대각선 직선과 깊은 헤어핀 |
 | Suzuka | 4,645 studs (약 1.3 km) | 1 / 2 / 3 | 실제 스즈카 GP 레이아웃을 3D로: 8자 입체교차(다리), 높이차 약 9 m, S자·데그너·헤어핀·스푼·130R·시케인 |
+| Catalunya | 3,161 studs (약 0.89 km) | 2 / 3 / 5 | 스페인 GP(바르셀로나): 긴 오른쪽 Turn 3, 언덕을 오르내리는 레이아웃, 빠른 마지막 코너 |
+| Zandvoort | 3,114 studs (약 0.87 km) | 2 / 3 / 5 | 네덜란드 GP: 모래언덕 위아래, 뱅크 코너 2개(Hugenholtz 헤어핀, 마지막 Arie Luyendyk) |
+| Yas Marina | 3,341 studs (약 0.94 km) | 2 / 3 / 5 | 아부다비 GP(2021 레이아웃): 야간 레이스, 헤어핀 뒤 긴 직선, 살짝 뱅크된 긴 Turn 9, 호텔 구간 |
 
-Hillside와 Suzuka에는 언덕이 있고 나머지는 평평한 전용 서킷이에요. 공통 시설: 아스팔트, 빨강·흰색 연석, 파랑·빨강으로 칠한 run-off(런오프, 코너 바깥 포장 탈출로), 느린 코너의 자갈 트랩, 인조 잔디 갓길, 타이어 방호벽과 펜스, 피트 레인·개러지·레이스 컨트롤 타워, 관중석, 스폰서 브리지, 마셜 포스트, 조명탑, 외곽 담장과 주차장.
+Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언덕이 있고 나머지는 평평한 전용 서킷이에요. 공통 시설: 아스팔트, 빨강·흰색 연석, 파랑·빨강으로 칠한 run-off(런오프, 코너 바깥 포장 탈출로), 느린 코너의 자갈 트랩, 인조 잔디 갓길, 타이어 방호벽과 펜스, 피트 레인·개러지·레이스 컨트롤 타워, 관중석, 스폰서 브리지, 마셜 포스트, 조명탑, 외곽 담장과 주차장.
 
 ### 카트 서킷 (Lakeside · Harbour, 그리고 언덕 서킷 Hillside)
 
@@ -57,6 +60,24 @@ Hillside와 Suzuka에는 언덕이 있고 나머지는 평평한 전용 서킷�
 - 자동 주행 랩 약 70초(실버스톤 약 84초, 힐사이드 약 59초). 코너 속도(자동 주행): 헤어핀 42, 카시오 시케인 48, 라스트 커브 52, S자·데그너 60~65, 스푼 59, 130R 80 km/h.
 - 언덕 위 코너(Gyaku Bank, 헤어핀, 스푼)의 관중석은 콘크리트 받침대 위에 올라가 있어요. 빈 땅에는 소나무가 있어요.
 
+### GP 서킷: Catalunya · Zandvoort · Yas Marina
+
+실제 F1 서킷 3개를 실제 중심선 데이터와 실제 고도로 만들었어요(Suzuka와 같은 방식). 크기는 실제 1 m = 0.8 stud라서 카트 속도에 맞는 크기예요: 자동 주행 랩 52~56초(Lakeside·Hillside와 비슷), 최고 속도 84~88 km/h.
+
+- **긴 직선은 줄였어요**: 카트로 긴 직선을 달리면 지루해서, 그 직선과 반대 방향으로 달리는 직선들을 같은 만큼 줄여서 나머지 코너 배치는 거의 그대로 두었어요.
+  - Catalunya: 메인 직선 811 → 약 650 studs, 백 스트레이트 375 → 291 studs (대신 Turn 3 → 4 사이 직선 등이 짧아짐)
+  - Yas Marina: 헤어핀 뒤 긴 직선 800 → 580 studs, 두 번째 직선 343 → 260 studs (대신 Turn 1~5 쪽 직선과 호텔 구간 직선이 짧아짐)
+  - Zandvoort: 메인 직선 524 → 452 studs
+- **고저차**: 위성 고도 데이터(Copernicus 30 m DEM)를 서킷 중심선을 따라 읽고, 나무·관중석 같은 구조물이 높게 잡힌 부분은 걸러낸 뒤(낮은 쪽 백분위수 + 평활화), 경사가 7.5%를 넘지 않게 다듬었어요. 높이도 가로 크기와 같은 비율로 줄였어요.
+  - Catalunya: 실제 높이차 약 30 m → 게임 21 studs. Turn 1 근처가 가장 낮고, Turn 3로 올라갔다가 Turn 5로 내려가고, Turn 9 · Turn 12 쪽이 가장 높아요. 출발 직선과 그리드는 평평해요.
+  - Zandvoort: 모래언덕(실제 약 9 m)을 잘 느끼도록 높이만 가로 비율의 1.6배로 키웠어요(최대 8.6 studs). Hugenholtz(12° 뱅크 헤어핀)와 Arie Luyendyk(9° 뱅크 마지막 코너)는 실제처럼 뱅크가 있어요(실제는 19° / 18°지만 서스펜션 없는 카트가 낮은 fps에서도 안정적인 각도로 줄였어요).
+  - Yas Marina: 실제로 거의 평지라 높이차가 작아요(최대 약 8 studs). 긴 왼쪽 Turn 9는 2021년 개편처럼 살짝(6°) 뱅크가 있어요.
+- **Yas Marina는 반시계 방향**이라 피트·개러지·패독이 출발 직선의 오른쪽(트랙 바깥)에 있고, 메인 관중석은 반대쪽이에요. 다른 서킷은 모두 왼쪽이에요.
+- Yas Marina는 밤 레이스(가로등 + 조명탑), Zandvoort는 흐린 날씨, Catalunya는 맑은 날씨에 소나무가 있어요.
+- 코너 이름 보드: Zandvoort는 실제 코너 이름(Tarzan, Hugenholtz, Scheivlak, Arie Luyendyk 등), Catalunya와 Yas Marina는 실제 코너 이름에 스폰서 이름이 많아서 Turn 번호로 했어요.
+- 실제 서킷 이름을 그대로 썼어요. 퍼블리시할 때 상표 문제가 걱정되면 `Shared/TrackData`의 `Name`만 바꾸면 돼요.
+- 만드는 법(코너 맞추기, 직선 줄이기, 고도)은 `tools/design/gp/`에 있어요(`tools/design/README.md`).
+
 ## 메뉴와 모드 (로비 + 서버 이동)
 
 공개 서버는 전부 **로비**예요. 메뉴 뒤에서 카메라가 서킷 하나를 천천히 따라 날아가요(fly-by). 버튼을 누르면 그 모드 전용 서버(reserved server, 예약 서버)를 만들어서 그쪽으로 텔레포트(teleport, 서버 이동)해요.
@@ -79,7 +100,7 @@ Hillside와 Suzuka에는 언덕이 있고 나머지는 평평한 전용 서킷�
 
 1. Roblox Studio → File → Open from File → [`build/A1KartRacing.rbxlx`](build/A1KartRacing.rbxlx)
 2. **혼자 테스트**: Play(F5) → 메인 메뉴. PRACTICE → 트랙 고르고 DRIVE → 이 서버가 연습 모드로 바뀌고 카트에 앉아요. 랩 타임이 기록돼요.
-   연습 중에 **M**(또는 화면의 TRACK 버튼)을 누르고 트랙 카드를 클릭하거나 숫자 **1~6**을 누르면 바로 그 트랙으로 바뀌어요(1 Tampines, 2 Silverstone, 3 Lakeside, 4 Hillside, 5 Harbour, 6 Suzuka). LOBBY 두 번 → 메뉴로.
+   연습 중에 **M**(또는 화면의 TRACK 버튼)을 누르고 트랙 카드를 클릭하거나 숫자 **1~9**를 누르면 바로 그 트랙으로 바뀌어요(패널 카드 오른쪽 위 숫자, 지금 트랙이 1번). LOBBY 두 번 → 메뉴로.
    PRIVATE ROOM → CREATE A ROOM → 대기실에서 START RACE로 혼자 퀄리·레이스까지 해볼 수 있어요. (Studio에서 KICK은 그 플레이어 창을 끊어요: 서버가 하나뿐이라 로비로 보낼 곳이 없어서요.)
 3. **2인 레이스 테스트**: Test 탭 → Clients and Servers → Players를 2로 → Start. 한 명이 RACE를 누르면(Studio라 7초 뒤) 서버가 레이스 모드로 바뀌고 둘 다 들어가요.
    2명이 되면 20초 대기(트랙·길이 투표, 모두 READY를 누르면 3초로 줄어듦) → 1랩 고스트 퀄리파잉 → 그리드 → 빨간 불 5개 → 소등(GO) → 랩 → 포디움 8초 → 다음 라운드 순서로 진행돼요.
@@ -177,7 +198,7 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 | 관전 대상 바꾸기 | Q / E | D-pad | 화면 버튼 |
 | 트랙 패널 열기 / 닫기 (대기 시간: 투표·길이·READY) | M | | TRACK / VOTE 버튼 |
 | 설정 | | | SETTINGS 버튼 |
-| 트랙 고르기 (연습: 바로 변경, 대기 시간: 투표) | 카드 클릭 또는 1~5 | B (다음 트랙) | 카드 터치 |
+| 트랙 고르기 (연습: 바로 변경, 대기 시간: 투표) | 카드 클릭 또는 1~9 | B (다음 트랙) | 카드 터치 |
 
 뒤집히거나 맵 밖으로 떨어지면 2초 뒤 자동으로 트랙에 복귀해요. 복귀 지점에 다른 카트가 있으면 옆이나 조금 뒤의 빈자리에 놓여요. 그래도 겹치면(둘이 동시에 복귀하는 등) 겹침이 풀릴 때까지 그 카트는 반투명 고스트가 돼서 부딪히지 않아요(`Config.Race.ResetClear`, `ResetGhostTime`).
 
@@ -344,7 +365,7 @@ tools/design/ 서킷 설계·미리보기·홍보 이미지용 파이썬 스크�
 Luau CLI와 Rojo가 있으면 프로젝트 폴더에서:
 
 ```bash
-luau tests/physics_test.luau     # 물리 + 여섯 트랙 자동 주행 랩(승차감 포함) + 뱅크 헤어핀 136개
+luau tests/physics_test.luau     # 물리 + 아홉 트랙 자동 주행 랩(승차감 포함, 60/20 fps) + 뱅크 헤어핀 190개
 luau tests/collision_test.luau   # 카트끼리 추돌·정면·측면·T자·모서리·네트워크 지연·저프레임·슬립스트림·다리 위아래 카트·지연 충돌 보정 40개
 luau tests/limits_test.luau      # 트랙 리밋 판정·위치 추적·섹터·무효 랩·체커기 22개
 luau tests/tools/bumps.luau      # 범퍼 반응 표 (-a "Stiffness SpringMax Damping MaxAccel"로 다른 값 비교)
@@ -353,7 +374,7 @@ luau tests/steering_test.luau    # 키보드 조향 램프·언더스티어·키
 luau tests/camera_test.luau      # 1인칭 화면 반동·수평 흔들림·머리 쏠림 10개
 luau tests/tools/turnin.luau     # 키를 눌렀을 때 핸들·요(yaw) 반응 표 (스무딩 켬/끔 비교)
 luau tests/race_test.luau        # 랩·순위·지름길 16개
-luau tests/layout_test.luau      # 여섯 서킷 배치 + 언덕·둑 + 도로 접힘 + Suzuka 다리(높이·옹벽·둑) 117개
+luau tests/layout_test.luau      # 아홉 서킷 배치 + 언덕·둑 + 도로 접힘 + Suzuka 다리(높이·옹벽·둑) + 피트 위치(반시계 서킷은 오른쪽) 185개
 luau tests/tools/crossing.luau -a Suzuka   # 입체교차: 다리 구간, 다리 밑 높이, 옹벽 위치·높이
 luau tests/tools/ride.luau -a "Hillside 60"   # 승차감: 한 바퀴 동안 차체 떨림(피치·롤 흔들림) 측정, plain = 예전 도로와 비교
 luau tests/tools/speedmap.luau -a Hillside > hs.csv && python3 tests/tools/speedmap.py hs.csv hs.png   # 자동 주행 속도 지도(코너별 최저 속도, 높이, 스로틀·핸들) — 코너 설계용
@@ -379,3 +400,5 @@ rojo build default.project.json -o build/A1KartRacing.rbxlx
 ## 데이터 출처
 
 Silverstone과 Suzuka 레이아웃은 [TUMFTM racetrack-database](https://github.com/TUMFTM/racetrack-database)(LGPL-3.0, OpenStreetMap 기반)의 중심선에 직선·원호를 맞춰서 만들었어요. Suzuka의 높이는 일본 국토지리원(GSI)의 5 m 레이저 측량 수치표고모델 값을 랩 50 m 간격으로 모은 고도 프로필을 썼어요.
+
+Catalunya, Zandvoort, Yas Marina 레이아웃은 [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits)(MIT, OpenStreetMap 기반 GeoJSON)의 중심선을 썼어요. 높이는 Copernicus DEM GLO-30을 썼어요: © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.

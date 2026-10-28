@@ -219,3 +219,21 @@ for _, phone in { false, true } do
 	dump(R, H, "roomlobby_host_" .. tag)
 	dump(R, B, "roomlobby_guest_" .. tag)
 end
+
+-- the HUD's track panel (M) on a practice server, every circuit built
+for _, phone in { false, true } do
+	local tag = if phone then "phone" else "desktop"
+	local P = boot({ studio = false, reserved = { mode = "practice", track = "Lakeside" } }, phone)
+	local A = P.addPlayer("Alice", 101)
+	P.startClient(A, Game.ClientSpec)
+	P.run(60, function()
+		return A:GetAttribute("Best_Lakeside") ~= nil
+			or #string.split(P.workspace:GetAttribute("Tracks") or "", ",") >= 9
+	end)
+	P.run(3)
+	P.pressKey("M")
+	P.run(0.2)
+	P.releaseKey("M")
+	P.run(0.5)
+	dump(P, A, "trackpanel_" .. tag)
+end

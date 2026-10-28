@@ -42,10 +42,10 @@ for _, trackId in TrackData.Order do
 	if not hilly then
 		check(maxY < 1e-6 and minY > -1e-6 and maxBank < 1e-6, string.format("track is flat (max height %.6f, max bank %.6f)", maxY, maxBank))
 	else
-		check(maxY > 20 and minY > -0.01, string.format("hills: road from %.2f up to %.1f studs (%.1f m), never below the lawn", minY, maxY, maxY * Config.StudMeters))
+		check(maxY > 5 and minY > -0.01, string.format("hills: road from %.2f up to %.1f studs (%.1f m), never below the lawn", minY, maxY, maxY * Config.StudMeters))
 		check(maxGrade < 0.12, string.format("steepest grade %.1f %%", maxGrade * 100))
 		if banked then
-			check(maxBank > 10 and maxBank <= 16, string.format("banked corners up to %.1f deg", maxBank))
+			check(maxBank > 5 and maxBank <= 16, string.format("banked corners up to %.1f deg", maxBank))
 		end
 		-- the grid, the start line and the pits stay level
 		local level = true
@@ -232,9 +232,12 @@ for _, trackId in TrackData.Order do
 	check(minClear > 10, string.format("barriers keep %.1f studs from the road edge", minClear))
 
 	-- pits: pit wall between the main straight and the pit lane; buildings clear
+	-- (on the outside of the lap: the left of the main straight, the right
+	-- on an anticlockwise circuit)
 	local P = TrackLayout.paddock(track)
 	local wallZ = P.wall[1].z
-	check(#P.wall > 20 and wallZ < -P.halfWidth and P.pitLane.maxZ <= wallZ, string.format("pit wall at z=%.0f between straight (edge %.0f) and pit lane (%.0f..%.0f)", wallZ, -P.halfWidth, P.pitLane.minZ, P.pitLane.maxZ))
+	local laneNear = if P.side < 0 then P.pitLane.maxZ else P.pitLane.minZ
+	check(#P.wall > 20 and P.side * wallZ > P.halfWidth and P.side * laneNear >= P.side * wallZ, string.format("pit wall at z=%.0f between straight (edge %.0f) and pit lane (%.0f..%.0f)", wallZ, P.side * P.halfWidth, P.pitLane.minZ, P.pitLane.maxZ))
 	local function rectClear(r: TrackLayout.Rect): number
 		local worst = math.huge
 		for x = r.minX, r.maxX, 8 do

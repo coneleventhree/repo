@@ -302,7 +302,8 @@ local function buildHome()
 	nowShowing.TextStrokeTransparency = 0.5
 end
 
-local CARD_W, CARD_H = 238, 150
+-- three rows of three: room for nine tracks in the panel
+local CARD_W, CARD_H = 238, 100
 local function buildCard(parent: Instance, id: string): TextButton
 	local spec = TrackData.get(id)
 	local t = TrackOutline.track(id)
@@ -324,14 +325,15 @@ local function buildCard(parent: Instance, id: string): TextButton
 	thumb.Parent = card
 	TrackOutline.draw(thumb, t, 84, 6, math.max(2, t.n // 120), 2)
 	-- two lines for the longer names ("LAKESIDE / INTERNATIONAL")
-	local nameL = label(card, "Name", string.upper(spec.Name), UDim2.fromOffset(CARD_W - 108, 48), UDim2.fromOffset(100, 8), 13, Enum.Font.GothamBlack, WHITE)
+	local nameL = label(card, "Name", string.upper(spec.Name), UDim2.fromOffset(CARD_W - 108, 32), UDim2.fromOffset(100, 7), 13, Enum.Font.GothamBlack, WHITE)
 	nameL.TextWrapped = true
 	nameL.TextTruncate = Enum.TextTruncate.None
 	nameL.TextYAlignment = Enum.TextYAlignment.Top
 	local km = t.length * Config.StudMeters / 1000
-	label(card, "Info", string.format("%.2f km", km), UDim2.fromOffset(CARD_W - 108, 16), UDim2.fromOffset(100, 60), 13, Enum.Font.GothamMedium, MUTED)
-	label(card, "Best", "", UDim2.fromOffset(CARD_W - 16, 16), UDim2.fromOffset(8, 106), 13, Enum.Font.GothamBold, WHITE)
-	label(card, "Record", "", UDim2.fromOffset(CARD_W - 16, 16), UDim2.fromOffset(8, 126), 12, Enum.Font.GothamMedium, MUTED)
+	label(card, "Info", string.format("%.2f km", km), UDim2.fromOffset(CARD_W - 108, 14), UDim2.fromOffset(100, 41), 12, Enum.Font.GothamMedium, MUTED)
+	label(card, "Best", "", UDim2.fromOffset(CARD_W - 108, 16), UDim2.fromOffset(100, 59), 12, Enum.Font.GothamBold, WHITE)
+	local recL = label(card, "Record", "", UDim2.fromOffset(CARD_W - 108, 14), UDim2.fromOffset(100, 78), 11, Enum.Font.GothamMedium, MUTED)
+	recL.TextTruncate = Enum.TextTruncate.AtEnd
 	card.Parent = parent
 	card.Activated:Connect(function()
 		Sfx.play("Click")
@@ -352,7 +354,7 @@ local function buildPractice()
 	grid.Parent = p
 	local layout = Instance.new("UIGridLayout")
 	layout.CellSize = UDim2.fromOffset(CARD_W, CARD_H)
-	layout.CellPadding = UDim2.fromOffset(14, 14)
+	layout.CellPadding = UDim2.fromOffset(14, 10)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = grid
 	for i, id in trackIds() do
@@ -867,8 +869,8 @@ local function update(_dt: number)
 			local by = workspace:GetAttribute("RecordBy_" .. id) :: string?
 			local bestL = card:FindFirstChild("Best") :: TextLabel
 			local recL = card:FindFirstChild("Record") :: TextLabel
-			bestL.Text = if best then "YOUR BEST  " .. fmt(best) else "NO TIME YET"
-			recL.Text = if rec then string.format("RECORD  %s  %s", fmt(rec), by or "") else ""
+			bestL.Text = if best then "BEST  " .. fmt(best) else "NO TIME YET"
+			recL.Text = if rec then string.format("REC  %s  %s", fmt(rec), by or "") else ""
 		end
 	elseif screen == "queue" then
 		local since = queuedAt or os.clock()

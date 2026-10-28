@@ -42,6 +42,7 @@ TrackLayout.PitWallLateral = 7 -- beyond the main straight's left edge
 TrackLayout.PitLaneWidth = 20
 TrackLayout.GarageDepth = 22
 TrackLayout.PaddockDepth = 80
+TrackLayout.PaddockClear = 44 -- studs from any road edge to the paddock floor
 TrackLayout.FacilityMargin = 120
 
 local function wrap(i: number, n: number): number
@@ -395,7 +396,9 @@ function TrackLayout.barriers(track: Track, grid: Grid, zones: Zones): { Barrier
 end
 
 ----------------------------------------------------------------------------
--- Pit lane, garages and paddock along the main straight (its left side)
+-- Pit lane, garages and paddock along the main straight, on the outside of
+-- the lap: its left side (-Z) on a clockwise circuit, its right side (+Z)
+-- on an anticlockwise one (pitSide)
 ----------------------------------------------------------------------------
 export type Rect = { minX: number, maxX: number, minZ: number, maxZ: number }
 export type Paddock = {
@@ -405,9 +408,13 @@ export type Paddock = {
 	plaza: Rect,
 	straightZ: number,
 	halfWidth: number,
+	side: number, -- -1 left of the main straight (-Z), +1 right
 }
 
-function TrackLayout.paddock(track: Track): Paddock
+-- `leftFrame`: as if the pits were on the left whatever pitSide says (the
+-- builder draws them there and mirrors the result).
+local paddockCache: { [any]: { [boolean]: Paddock } } = setmetatable({}, { __mode = "k" }) :: any
+local function buildPaddock(track: Track, leftFrame: boolean?): Paddock
 	-- the main straight runs along +X at z = 0 through the start line
 	local minX, maxX = math.huge, -math.huge
 	local halfW = 0
@@ -430,7 +437,79 @@ function TrackLayout.paddock(track: Track): Paddock
 	local lane = { minX = x0, maxX = x1, minZ = laneTop - TrackLayout.PitLaneWidth, maxZ = laneTop }
 	local garages = { minX = x0 + 10, maxX = x1 - 10, minZ = lane.minZ - TrackLayout.GarageDepth, maxZ = lane.minZ }
 	local plaza = { minX = x0 - 10, maxX = x1 + 10, minZ = garages.minZ - TrackLayout.PaddockDepth, maxZ = garages.minZ }
-	return { wall = wall, pitLane = lane, garages = garages, plaza = plaza, straightZ = 0, halfWidth = halfW }
+	local side = TrackLayout.pitSide(track)
+	-- a compact circuit can bring another road near the back of the paddock:
+	-- make it shallower, then shorten it from either end, until it keeps
+	-- PaddockClear from every road
+	local function blocked(x: number): boolean
+		for z = plaza.minZ, plaza.maxZ, 5 do
+			local zz = if side > 0 then -z else z
+			for _, smp in track.samples do
+				local dx, dz = smp.pos.x - x, smp.pos.z - zz
+				local r = smp.width / 2 + TrackLayout.PaddockClear
+				if dx * dx + dz * dz < r * r then
+					return true
+				end
+			end
+		end
+		return false
+	end
+	local function anyBlocked(): boolean
+		for x = plaza.minX, plaza.maxX, 5 do
+			if blocked(x) then
+				return true
+			end
+		end
+		return false
+	end
+	-- (shallower first: the podium and the spawn sit near its front)
+	while plaza.maxZ - plaza.minZ > 40 and anyBlocked() do
+		plaza.minZ += 8
+	end
+	while plaza.maxX - plaza.minX > 200 and (blocked(plaza.minX) or blocked(plaza.minX + 5)) do
+		plaza.minX += 10
+	end
+	while plaza.maxX - plaza.minX > 200 and (blocked(plaza.maxX) or blocked(plaza.maxX - 5)) do
+		plaza.maxX -= 10
+	end
+	local P = { wall = wall, pitLane = lane, garages = garages, plaza = plaza, straightZ = 0, halfWidth = halfW, side = -1 }
+	if side > 0 and not leftFrame then
+		-- mirrored across the main straight (z -> -z)
+		local function flip(r: Rect): Rect
+			return { minX = r.minX, maxX = r.maxX, minZ = -r.maxZ, maxZ = -r.minZ }
+		end
+		for k, p in wall do
+			wall[k] = vector.create(p.x, p.y, -p.z)
+		end
+		P.pitLane, P.garages, P.plaza, P.side = flip(lane), flip(garages), flip(plaza), 1
+	end
+	return P
+end
+
+function TrackLayout.paddock(track: Track, leftFrame: boolean?): Paddock
+	local byFrame = paddockCache[track]
+	if not byFrame then
+		byFrame = {}
+		paddockCache[track] = byFrame
+	end
+	local key = leftFrame == true
+	local P = byFrame[key]
+	if not P then
+		P = buildPaddock(track, leftFrame)
+		byFrame[key] = P
+	end
+	return P
+end
+
+-- Which side of the main straight the pits are on: -1 left (a clockwise
+-- lap, or a figure of eight), +1 right (an anticlockwise lap, whose infield
+-- is on the left).
+function TrackLayout.pitSide(track: Track): number
+	local turn = 0
+	for _, smp in track.samples do
+		turn += smp.curv * track.spacing
+	end
+	return if turn < -math.pi then 1 else -1
 end
 
 ----------------------------------------------------------------------------
@@ -519,7 +598,7 @@ function TrackLayout.stands(track: Track, grid: Grid, zones: Zones, segments: { 
 		return top
 	end
 	local kept: { Stand } = {}
-	-- main grandstand: infield side of the main straight, facing the pits, on
+	-- main grandstand: across the main straight from the pits, facing them, on
 	-- the level; shorter (and slid along) where the infield is cramped
 	local full = math.min(P.pitLane.maxX - P.pitLane.minX - 40, 280)
 	local mainX = (P.pitLane.minX + P.pitLane.maxX) / 2
@@ -531,8 +610,8 @@ function TrackLayout.stands(track: Track, grid: Grid, zones: Zones, segments: { 
 		local slack = (full - len) / 2
 		for _, dx in { 0, -slack, slack, -slack / 2, slack / 2 } do
 			local st: Stand = {
-				center = vector.create(mainX + dx, 0, P.halfWidth + 14 + 14),
-				facing = vector.create(0, 0, -1),
+				center = vector.create(mainX + dx, 0, -P.side * (P.halfWidth + 14 + 14)),
+				facing = vector.create(0, 0, P.side),
 				length = len,
 				depth = 28,
 				name = "Main",
@@ -642,6 +721,7 @@ function TrackLayout.facility(track: Track): Rect
 	local b = TrackLayout.bounds(track, margin)
 	local P = TrackLayout.paddock(track)
 	b.minZ = math.min(b.minZ, P.plaza.minZ - 10)
+	b.maxZ = math.max(b.maxZ, P.plaza.maxZ + 10)
 	-- round to 10 studs so the lawn stripes line up
 	b.minX = math.floor(b.minX / 10) * 10
 	b.minZ = math.floor(b.minZ / 10) * 10
@@ -665,7 +745,8 @@ function TrackLayout.openGround(track: Track, grid: Grid, zones: Zones, segments
 	for x = f.minX + 30, f.maxX - 30, step do
 		for z = f.minZ + 30, f.maxZ - 30, step do
 			-- the pits and the paddock beside the main straight
-			if z < P.pitLane.maxZ + 10 and x > P.plaza.minX - 30 and x < P.plaza.maxX + 30 then
+			local near = if P.side < 0 then P.pitLane.maxZ else P.pitLane.minZ
+			if P.side * z > P.side * near - 10 and x > P.plaza.minX - 30 and x < P.plaza.maxX + 30 then
 				continue
 			end
 			local i, d = TrackLayout.nearest(grid, x, z, 400)

@@ -129,10 +129,11 @@ local function solveFree(spec: Spec): { number }
 		end
 	end
 	assert(#dirs == 2, "the layout needs exactly two free straights")
-	-- a figure of eight (one road crossing the other on a bridge) turns 0 degrees
+	-- clockwise +360, anticlockwise -360; a figure of eight (one road
+	-- crossing the other on a bridge) turns 0 degrees
 	assert(
-		math.abs(theta - 2 * math.pi) < 1e-6 or math.abs(theta) < 1e-6,
-		string.format("corners must add up to +360 degrees, or 0 for a figure of eight (got %.2f)", math.deg(theta))
+		math.abs(math.abs(theta) - 2 * math.pi) < 1e-6 or math.abs(theta) < 1e-6,
+		string.format("corners must add up to +-360 degrees, or 0 for a figure of eight (got %.2f)", math.deg(theta))
 	)
 	local ex, ez = walk(spec, { 0, 0 })
 	-- L1*d1 + L2*d2 = -E

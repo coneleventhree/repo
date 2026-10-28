@@ -2801,9 +2801,301 @@ local Suzuka = {
 	} :: { any },
 }
 
+-- Catalunya (Spanish GP, Barcelona, 2023 layout without the chicane): the
+-- real centre line at 0.8 studs per metre with its real hills (Copernicus DEM,
+-- 21 studs from Turn 1 up to Turn 12), the main and back straights shortened.
+local Catalunya = {
+	Id = "Catalunya",
+	Name = "Catalunya",
+	Blurb = "Spanish GP, Barcelona - long Turn 3 and hills",
+	Laps = 3,
+	Lengths = { 2, 3, 5 },
+	Qualifying = 150,
+	Spacing = 5, -- finer samples on a hilly circuit: a smoother road (TrackLayout road pieces)
+	Smoothing = 10,
+	BankSmoothing = 22,
+	CornerBoards = true,
+	Trees = true,
+	Segments = {
+		{ kind = "S", length = 376.7, y = 0, width = 30 },
+		{ kind = "A", radius = 53.3, angle = 39.61, y = 0, name = "Turn 1" },
+		{ kind = "A", radius = 32.8, angle = 42.59, y = 0, name = "Turn 1" },
+		{ kind = "S", length = 4.3, y = 0 },
+		{ kind = "A", radius = 32, angle = -28.75, y = 0, name = "Turn 2" },
+		{ kind = "A", radius = 62.2, angle = -29.7, y = 0.8, name = "Turn 2" },
+		{ kind = "S", length = 15.1, y = 3.2 },
+		{ kind = "A", radius = 96, angle = 29.16, y = 5.1, name = "Turn 3" },
+		{ kind = "A", radius = 105.7, angle = 27.88, y = 6.5, name = "Turn 3" },
+		{ kind = "A", radius = 99.1, angle = 27.22, y = 7.9, name = "Turn 3" },
+		{ kind = "A", radius = 119, angle = 20.63, y = 8.7, name = "Turn 3" },
+		{ kind = "A", radius = 132.2, angle = 17.79, y = 9.6, name = "Turn 3" },
+		{ kind = "A", radius = 144.5, angle = 16.38, y = 10.3, name = "Turn 3" },
+		{ kind = "S", length = 10.3, y = 10.3 },
+		{ kind = "A", radius = 230.1, angle = 6.63, y = 10.5, name = "Turn 3" },
+		{ kind = "A", radius = 151.3, angle = 10.15, y = 10.9, name = "Turn 3" },
+		{ kind = "S", length = 55, y = 14 },
+		{ kind = "A", radius = 48.4, angle = 47.36, y = 14.1, name = "Turn 4" },
+		{ kind = "A", radius = 44.5, angle = 51.24, y = 14.5, name = "Turn 4" },
+		{ kind = "A", radius = 63.2, angle = 35.1, y = 14.9, name = "Turn 4" },
+		{ kind = "A", radius = 80.9, angle = 25.88, y = 15.1, name = "Turn 4" },
+		{ kind = "A", radius = 82.8, angle = 24.95, y = 15.2, name = "Turn 4" },
+		{ kind = "S", length = 4.4, y = 15.1 },
+		{ kind = "A", radius = 190, angle = 3.47, y = 14.9, name = "Turn 4" },
+		{ kind = "S", length = 70, y = 11.3 },
+		{ kind = "A", radius = 32, angle = -82.51, y = 9.5, name = "Turn 5" },
+		{ kind = "A", radius = 32, angle = -72.59, y = 7.2, name = "Turn 5" },
+		{ kind = "S", length = "free", y = 2.6 },
+		{ kind = "A", radius = 163.9, angle = -8.94, y = 1.4, name = "Turn 6" },
+		{ kind = "A", radius = 192.8, angle = -7.78, y = 0.7, name = "Turn 6" },
+		{ kind = "A", radius = 129.3, angle = -12.36, y = 0.4, name = "Turn 6" },
+		{ kind = "S", length = 19.5, y = 0.7 },
+		{ kind = "A", radius = 35.6, angle = -47.68, y = 1.4, name = "Turn 7" },
+		{ kind = "A", radius = 37.4, angle = -42.01, y = 2.8, name = "Turn 7" },
+		{ kind = "A", radius = 88.9, angle = 15.63, y = 4.4, name = "Turn 8" },
+		{ kind = "A", radius = 96.4, angle = 16.26, y = 6, name = "Turn 8" },
+		{ kind = "S", length = "free", y = 14 },
+		{ kind = "A", radius = 77, angle = 28.14, y = 16, name = "Turn 9" },
+		{ kind = "A", radius = 67.7, angle = 31.4, y = 17.1, name = "Turn 9" },
+		{ kind = "A", radius = 83.6, angle = 26.61, y = 17.5, name = "Turn 9" },
+		{ kind = "S", length = 290.9, y = 13.8 },
+		{ kind = "A", radius = 34.9, angle = -59.89, y = 13.8, name = "Turn 10" },
+		{ kind = "A", radius = 32.1, angle = -63.12, y = 13.3, name = "Turn 10" },
+		{ kind = "A", radius = 76.9, angle = -27.36, y = 13.6, name = "Turn 10" },
+		{ kind = "A", radius = 73.8, angle = -29.09, y = 15.6, name = "Turn 10" },
+		{ kind = "A", radius = 129.6, angle = -16.46, y = 17.3, name = "Turn 11" },
+		{ kind = "A", radius = 80.6, angle = 23.57, y = 18.4, name = "Turn 12" },
+		{ kind = "A", radius = 41, angle = 45.36, y = 19.7, name = "Turn 12" },
+		{ kind = "A", radius = 45.5, angle = 40.06, y = 20.8, name = "Turn 12" },
+		{ kind = "A", radius = 46, angle = 41.12, y = 21.5, name = "Turn 12" },
+		{ kind = "A", radius = 58.2, angle = 33.47, y = 21.9 },
+		{ kind = "S", length = 102.1, y = 17.2 },
+		{ kind = "A", radius = 73.8, angle = 35.01, y = 12.2, name = "Turn 13" },
+		{ kind = "A", radius = 67.3, angle = 37.36, y = 11.9, name = "Turn 13" },
+		{ kind = "S", length = 55.5, y = 11.8 },
+		{ kind = "A", radius = 233.9, angle = -2.86, y = 11.7 },
+		{ kind = "S", length = 53.2, y = 9.8 },
+		{ kind = "A", radius = 80.3, angle = 23.59, y = 8.1, name = "Turn 14" },
+		{ kind = "A", radius = 72.6, angle = 26.23, y = 7.2, name = "Turn 14" },
+		{ kind = "A", radius = 71.6, angle = 26.61, y = 6.9, name = "Turn 14" },
+		{ kind = "A", radius = 130.1, angle = 14.64, y = 6.7, name = "Turn 14" },
+		{ kind = "S", length = 121, y = 0 },
+		{ kind = "S", length = 150, y = 0 },
+	} :: { any },
+}
+
+-- Zandvoort (Dutch GP): the real centre line at 0.8 studs per metre through the
+-- dunes (heights x 1.6 the plan scale so the crests read), the banked
+-- Hugenholtz hairpin and Arie Luyendyk final corner (12 and 9 degrees), the
+-- main straight shortened.
+local Zandvoort = {
+	Id = "Zandvoort",
+	Name = "Zandvoort",
+	Blurb = "Dutch GP - dunes and two banked corners",
+	Laps = 3,
+	Lengths = { 2, 3, 5 },
+	Qualifying = 150,
+	Spacing = 5, -- finer samples on a hilly circuit: a smoother road (TrackLayout road pieces)
+	Smoothing = 10,
+	BankSmoothing = 40, -- long bank transitions: a rigid kart rocks on a fast twist
+	CornerBoards = true,
+	Trees = true,
+	Sky = "Cloudy",
+	Segments = {
+		{ kind = "S", length = 120, y = 0, width = 28 },
+		{ kind = "S", length = 110.6, y = 3.5 },
+		{ kind = "A", radius = 33.8, angle = 56.56, y = 4.4, name = "Tarzan" },
+		{ kind = "A", radius = 32, angle = 65.57, y = 4.3, name = "Tarzan" },
+		{ kind = "A", radius = 32.9, angle = 58.08, y = 3.3, name = "Tarzan" },
+		{ kind = "S", length = 49.6, y = 1.5 },
+		{ kind = "A", radius = 154, angle = -5.91, y = 1.5, name = "Gerlach" },
+		{ kind = "S", length = 15.9, y = 1.6 },
+		{ kind = "A", radius = 111.5, angle = -9.59, y = 1.6, name = "Gerlach" },
+		{ kind = "S", length = 14, y = 1.6 },
+		{ kind = "A", radius = 107.8, angle = -9.97, y = 1.6, name = "Gerlach" },
+		{ kind = "S", length = 9.7, y = 1.8 },
+		{ kind = "A", radius = 38.6, angle = 39.12, y = 2.7, name = "Gerlach" },
+		{ kind = "A", radius = 57.2, angle = 23.55, y = 3.3, name = "Gerlach" },
+		{ kind = "S", length = 22.6, y = 3.2 },
+		{ kind = "A", radius = 32, angle = -55.9, bank = 12, y = 3.2, name = "Hugenholtz" },
+		{ kind = "A", radius = 32, angle = -60.49, bank = 12, y = 3.2, name = "Hugenholtz" },
+		{ kind = "A", radius = 32, angle = -50.29, bank = 12, y = 3.5, name = "Hugenholtz" },
+		{ kind = "S", length = 40.1, y = 5 },
+		{ kind = "A", radius = 152.5, angle = 3.8, y = 6.9, name = "Hunserug" },
+		{ kind = "S", length = 19.7, y = 7.1 },
+		{ kind = "A", radius = 135.8, angle = 6.53, y = 7.1, name = "Hunserug" },
+		{ kind = "S", length = 15.2, y = 6.8 },
+		{ kind = "A", radius = 175.6, angle = 4.01, y = 6.3, name = "Hunserug" },
+		{ kind = "S", length = 15, y = 5.6 },
+		{ kind = "A", radius = 197.5, angle = 2.97, y = 4.9, name = "Hunserug" },
+		{ kind = "S", length = 12.9, y = 4.3 },
+		{ kind = "A", radius = 152.3, angle = 4.61, y = 3.5, name = "Hunserug" },
+		{ kind = "S", length = 7.3, y = 3.1 },
+		{ kind = "A", radius = 181.4, angle = -3.46, y = 2.6, name = "Hunserug" },
+		{ kind = "S", length = 15.4, y = 2.1 },
+		{ kind = "A", radius = 152.6, angle = -3.94, y = 1.8, name = "Slotemaker" },
+		{ kind = "S", length = 6.3, y = 1.7 },
+		{ kind = "A", radius = 83.7, angle = -12.59, y = 1.5, name = "Slotemaker" },
+		{ kind = "S", length = 31.9, y = 1.3 },
+		{ kind = "A", radius = 112.1, angle = -7.13, y = 1.1, name = "Slotemaker" },
+		{ kind = "S", length = 16.2, y = 1 },
+		{ kind = "A", radius = 169.6, angle = -2.1, y = 1.2, name = "Slotemaker" },
+		{ kind = "S", length = 24.3, y = 2.1 },
+		{ kind = "A", radius = 145.1, angle = 6.94, y = 3.2 },
+		{ kind = "S", length = 8.1, y = 3.8 },
+		{ kind = "A", radius = 133.1, angle = 16.4, y = 6.6 },
+		{ kind = "S", length = 11.5, y = 7.2 },
+		{ kind = "A", radius = 153.7, angle = 5.16, y = 8.3 },
+		{ kind = "S", length = "free", y = 8.9 },
+		{ kind = "A", radius = 98.7, angle = 21.68, y = 6.6, name = "Scheivlak" },
+		{ kind = "A", radius = 73, angle = 28.91, y = 4.1, name = "Scheivlak" },
+		{ kind = "A", radius = 80.5, angle = 25.95, y = 3.2, name = "Scheivlak" },
+		{ kind = "A", radius = 86.9, angle = 24.17, y = 3.5, name = "Scheivlak" },
+		{ kind = "A", radius = 107.3, angle = 19.85, y = 4.5, name = "Scheivlak" },
+		{ kind = "S", length = 34.7, y = 6 },
+		{ kind = "A", radius = 186.4, angle = -3.58, y = 5.9 },
+		{ kind = "S", length = 13.5, y = 5.4 },
+		{ kind = "A", radius = 152.1, angle = -5.32, y = 4.9 },
+		{ kind = "S", length = 40.3, y = 2.7 },
+		{ kind = "A", radius = 33.1, angle = 55.2, y = 1.3, name = "Mastersbocht" },
+		{ kind = "A", radius = 121.9, angle = 14.86, y = 0.8, name = "Mastersbocht" },
+		{ kind = "A", radius = 145.5, angle = 12.84, y = 0.7, name = "Mastersbocht" },
+		{ kind = "S", length = 7.9, y = 0.7 },
+		{ kind = "A", radius = 158.2, angle = 5.33, y = 0.8, name = "Mastersbocht" },
+		{ kind = "S", length = 10.2, y = 0.8 },
+		{ kind = "A", radius = 117.2, angle = 8.8, y = 0.9, name = "Mastersbocht" },
+		{ kind = "S", length = 10.1, y = 1 },
+		{ kind = "A", radius = 45.2, angle = 44.21, y = 0.9, name = "Turn 9" },
+		{ kind = "A", radius = 32, angle = 69.47, y = 1.2, name = "Turn 9" },
+		{ kind = "A", radius = 83.3, angle = 24.85, y = 1.6, name = "Turn 9" },
+		{ kind = "S", length = 19.1, y = 1.6 },
+		{ kind = "A", radius = 182.8, angle = -3.8, y = 1.7, name = "Turn 9" },
+		{ kind = "S", length = 18.5, y = 1.8 },
+		{ kind = "A", radius = 145.1, angle = -6.15, y = 2, name = "Turn 10" },
+		{ kind = "S", length = 14, y = 2 },
+		{ kind = "A", radius = 44.7, angle = -49.51, y = 1.7, name = "Turn 10" },
+		{ kind = "A", radius = 34.1, angle = -65.39, y = 1.4, name = "Turn 10" },
+		{ kind = "A", radius = 38.3, angle = -51.63, y = 1.6, name = "Turn 10" },
+		{ kind = "S", length = 42.6, y = 2 },
+		{ kind = "A", radius = 139.9, angle = -6.39, y = 2.1 },
+		{ kind = "S", length = 48.3, y = 1.9 },
+		{ kind = "A", radius = 162.6, angle = -2.34, y = 1.8 },
+		{ kind = "S", length = 58.1, y = 2.3 },
+		{ kind = "A", radius = 158.9, angle = -2.04, y = 2.7 },
+		{ kind = "S", length = "free", y = 2.5 },
+		{ kind = "A", radius = 102.7, angle = -10.51, y = 1.7 },
+		{ kind = "S", length = 11.6, y = 0.9 },
+		{ kind = "A", radius = 32, angle = 80.75, y = 0, name = "Hans Ernst" },
+		{ kind = "A", radius = 32, angle = -77.39, y = 0, name = "Hans Ernst" },
+		{ kind = "A", radius = 32, angle = -76.28, y = 0, name = "Hans Ernst" },
+		{ kind = "S", length = 161.6, y = 0.5 },
+		{ kind = "A", radius = 42.9, angle = 46.32, y = 1, name = "Turn 13" },
+		{ kind = "A", radius = 46.6, angle = 52.33, y = 1.1, name = "Turn 13" },
+		{ kind = "S", length = 44.3, y = 3 },
+		{ kind = "A", radius = 141.3, angle = 14.43, bank = 9, y = 3, name = "Arie Luyendyk" },
+		{ kind = "A", radius = 106.1, angle = 19.57, bank = 9, y = 3, name = "Arie Luyendyk" },
+		{ kind = "A", radius = 102.2, angle = 19.79, bank = 9, y = 3, name = "Arie Luyendyk" },
+		{ kind = "A", radius = 106.9, angle = 19.33, bank = 9, y = 3.1, name = "Arie Luyendyk" },
+		{ kind = "A", radius = 95, angle = 21.26, bank = 9, y = 3.6, name = "Arie Luyendyk" },
+		{ kind = "S", length = 8.9, y = 3.8 },
+		{ kind = "A", radius = 119.5, angle = 18.5, bank = 9, y = 5, name = "Arie Luyendyk" },
+		{ kind = "S", length = 81.6, y = 0 },
+		{ kind = "S", length = 140, y = 0 },
+	} :: { any },
+}
+
+-- Yas Marina (Abu Dhabi GP, 2021 layout) at night under lamp posts: the real
+-- centre line at 0.8 studs per metre, nearly flat like the real one, the two
+-- long straights shortened, the long Turn 9 left gently banked.
+local YasMarina = {
+	Id = "YasMarina",
+	Name = "Yas Marina",
+	Blurb = "Abu Dhabi GP - night race, hairpin and hotel section",
+	Laps = 3,
+	Lengths = { 2, 3, 5 },
+	Qualifying = 150,
+	Spacing = 5, -- finer samples: a smoother road on the banked Turn 9
+	Smoothing = 10,
+	BankSmoothing = 40,
+	CornerBoards = true,
+	Sky = "Night",
+	TrackLights = true,
+	Segments = {
+		{ kind = "S", length = 120, y = 0, width = 30 },
+		{ kind = "S", length = 62.3, y = 0.9 },
+		{ kind = "A", radius = 32.6, angle = -47.21, y = 0.4, name = "Turn 1" },
+		{ kind = "A", radius = 32.2, angle = -49.2, y = 0.2, name = "Turn 1" },
+		{ kind = "S", length = 108.3, y = 1.4 },
+		{ kind = "A", radius = 66.7, angle = -28.99, y = 2.9, name = "Turn 2" },
+		{ kind = "A", radius = 66.9, angle = -30.93, y = 4.6, name = "Turn 2" },
+		{ kind = "S", length = "free", y = 6.3 },
+		{ kind = "A", radius = 129, angle = 14.99, y = 7.5, name = "Turn 3" },
+		{ kind = "A", radius = 118.7, angle = 16.27, y = 7.8, name = "Turn 3" },
+		{ kind = "A", radius = 94.8, angle = 19.53, y = 7.9, name = "Turn 3" },
+		{ kind = "A", radius = 84.6, angle = 22.3, y = 7.2, name = "Turn 3" },
+		{ kind = "A", radius = 127.3, angle = 14.36, y = 5.9, name = "Turn 3" },
+		{ kind = "S", length = 16.5, y = 4.6 },
+		{ kind = "A", radius = 140.2, angle = -7.22, y = 4.5, name = "Turn 4" },
+		{ kind = "S", length = 19.7, y = 4.5 },
+		{ kind = "A", radius = 163.8, angle = -5.83, y = 4.5, name = "Turn 4" },
+		{ kind = "S", length = 8.5, y = 4.4 },
+		{ kind = "A", radius = 149.4, angle = -6.41, y = 4.2, name = "Turn 4" },
+		{ kind = "S", length = 59.6, y = 3.9 },
+		{ kind = "A", radius = 41.8, angle = -39.41, y = 3.2, name = "Turn 5" },
+		{ kind = "A", radius = 32, angle = -69.28, y = 2.5, name = "Turn 5" },
+		{ kind = "A", radius = 40.6, angle = -45.08, y = 2.1, name = "Turn 5" },
+		{ kind = "S", length = 24.7, y = 1.8 },
+		{ kind = "A", radius = 181.7, angle = -4.58, y = 1.5 },
+		{ kind = "S", length = "free", y = 1.3 },
+		{ kind = "A", radius = 185.4, angle = 6.91, y = 1.3 },
+		{ kind = "S", length = 585.2, y = 1 },
+		{ kind = "A", radius = 42.2, angle = -122.94, y = 1.1, name = "Turn 6" },
+		{ kind = "S", length = 7.2, y = 1.1 },
+		{ kind = "A", radius = 32, angle = 85.41, y = 1.4, name = "Turn 6" },
+		{ kind = "S", length = 53, y = 2.4 },
+		{ kind = "A", radius = 191.4, angle = -5.37, y = 2.4 },
+		{ kind = "S", length = 14.8, y = 2.4 },
+		{ kind = "A", radius = 181.8, angle = -12.34, y = 2.2 },
+		{ kind = "S", length = 20.4, y = 1.9 },
+		{ kind = "A", radius = 163.7, angle = -6.55, y = 1.7 },
+		{ kind = "S", length = 17.2, y = 1.6 },
+		{ kind = "A", radius = 107.2, angle = -11.62, y = 1.6 },
+		{ kind = "S", length = 169.8, y = 1.5 },
+		{ kind = "A", radius = 136.7, angle = -7.32, y = 1.4 },
+		{ kind = "S", length = 83.9, y = 2 },
+		{ kind = "A", radius = 48.7, angle = -42.33, bank = 6, y = 2, name = "Turn 9" },
+		{ kind = "A", radius = 49, angle = -45.54, bank = 6, y = 2, name = "Turn 9" },
+		{ kind = "A", radius = 60.4, angle = -35.99, bank = 6, y = 2, name = "Turn 9" },
+		{ kind = "A", radius = 70.6, angle = -29.62, bank = 6, y = 2, name = "Turn 9" },
+		{ kind = "A", radius = 63.6, angle = -32.06, bank = 6, y = 2, name = "Turn 9" },
+		{ kind = "A", radius = 87.4, angle = -24.42, bank = 6, y = 2, name = "Turn 9" },
+		{ kind = "S", length = 39.3, y = 0.4 },
+		{ kind = "A", radius = 101.6, angle = 26.5, y = 0.1, name = "Turn 10" },
+		{ kind = "S", length = 20.5, y = 0 },
+		{ kind = "A", radius = 61.3, angle = 43.45, y = 0, name = "Turn 11" },
+		{ kind = "S", length = 46.8, y = 0.7 },
+		{ kind = "A", radius = 32, angle = 102.4, y = 0.3, name = "Turn 12" },
+		{ kind = "S", length = 34.1, y = 0.1 },
+		{ kind = "A", radius = 33.9, angle = -43.87, y = 0, name = "Turn 13" },
+		{ kind = "A", radius = 38.1, angle = -39.65, y = 0, name = "Turn 13" },
+		{ kind = "S", length = 30.5, y = 0 },
+		{ kind = "A", radius = 32, angle = -58.39, y = 0.1, name = "Turn 13" },
+		{ kind = "A", radius = 58.6, angle = -29.22, y = 0.4, name = "Turn 13" },
+		{ kind = "A", radius = 148.1, angle = -12.71, y = 0.7 },
+		{ kind = "S", length = 68.4, y = 1.4 },
+		{ kind = "A", radius = 107.9, angle = 21.05, y = 1.4, name = "Turn 15" },
+		{ kind = "A", radius = 43.9, angle = 49.99, y = 1.4, name = "Turn 15" },
+		{ kind = "S", length = 82.8, y = 1.1 },
+		{ kind = "A", radius = 59.1, angle = 22.46, y = 1.1 },
+		{ kind = "A", radius = 42.7, angle = 34.75, y = 1.2, name = "Turn 16" },
+		{ kind = "A", radius = 32, angle = 53.71, y = 1.2, name = "Turn 16" },
+		{ kind = "S", length = 43.1, y = 0 },
+		{ kind = "S", length = 140, y = 0 },
+	} :: { any },
+}
+
 local TrackData = {
 	Default = "Tampines",
-	Order = { "Tampines", "Silverstone", "Lakeside", "Hillside", "Harbour", "Suzuka" },
+	Order = { "Tampines", "Silverstone", "Lakeside", "Hillside", "Harbour", "Suzuka", "Catalunya", "Zandvoort", "YasMarina" },
 	Tracks = {
 		Tampines = Tampines,
 		Silverstone = Silverstone,
@@ -2811,6 +3103,9 @@ local TrackData = {
 		Hillside = Hillside,
 		Harbour = Harbour,
 		Suzuka = Suzuka,
+		Catalunya = Catalunya,
+		Zandvoort = Zandvoort,
+		YasMarina = YasMarina,
 	} :: { [string]: any },
 }
 
@@ -2870,6 +3165,7 @@ TrackLayout.PitWallLateral = 7 -- beyond the main straight's left edge
 TrackLayout.PitLaneWidth = 20
 TrackLayout.GarageDepth = 22
 TrackLayout.PaddockDepth = 80
+TrackLayout.PaddockClear = 44 -- studs from any road edge to the paddock floor
 TrackLayout.FacilityMargin = 120
 
 local function wrap(i: number, n: number): number
@@ -3223,7 +3519,9 @@ function TrackLayout.barriers(track: Track, grid: Grid, zones: Zones): { Barrier
 end
 
 ----------------------------------------------------------------------------
--- Pit lane, garages and paddock along the main straight (its left side)
+-- Pit lane, garages and paddock along the main straight, on the outside of
+-- the lap: its left side (-Z) on a clockwise circuit, its right side (+Z)
+-- on an anticlockwise one (pitSide)
 ----------------------------------------------------------------------------
 export type Rect = { minX: number, maxX: number, minZ: number, maxZ: number }
 export type Paddock = {
@@ -3233,9 +3531,13 @@ export type Paddock = {
 	plaza: Rect,
 	straightZ: number,
 	halfWidth: number,
+	side: number, -- -1 left of the main straight (-Z), +1 right
 }
 
-function TrackLayout.paddock(track: Track): Paddock
+-- `leftFrame`: as if the pits were on the left whatever pitSide says (the
+-- builder draws them there and mirrors the result).
+local paddockCache: { [any]: { [boolean]: Paddock } } = setmetatable({}, { __mode = "k" }) :: any
+local function buildPaddock(track: Track, leftFrame: boolean?): Paddock
 	-- the main straight runs along +X at z = 0 through the start line
 	local minX, maxX = math.huge, -math.huge
 	local halfW = 0
@@ -3258,7 +3560,79 @@ function TrackLayout.paddock(track: Track): Paddock
 	local lane = { minX = x0, maxX = x1, minZ = laneTop - TrackLayout.PitLaneWidth, maxZ = laneTop }
 	local garages = { minX = x0 + 10, maxX = x1 - 10, minZ = lane.minZ - TrackLayout.GarageDepth, maxZ = lane.minZ }
 	local plaza = { minX = x0 - 10, maxX = x1 + 10, minZ = garages.minZ - TrackLayout.PaddockDepth, maxZ = garages.minZ }
-	return { wall = wall, pitLane = lane, garages = garages, plaza = plaza, straightZ = 0, halfWidth = halfW }
+	local side = TrackLayout.pitSide(track)
+	-- a compact circuit can bring another road near the back of the paddock:
+	-- make it shallower, then shorten it from either end, until it keeps
+	-- PaddockClear from every road
+	local function blocked(x: number): boolean
+		for z = plaza.minZ, plaza.maxZ, 5 do
+			local zz = if side > 0 then -z else z
+			for _, smp in track.samples do
+				local dx, dz = smp.pos.x - x, smp.pos.z - zz
+				local r = smp.width / 2 + TrackLayout.PaddockClear
+				if dx * dx + dz * dz < r * r then
+					return true
+				end
+			end
+		end
+		return false
+	end
+	local function anyBlocked(): boolean
+		for x = plaza.minX, plaza.maxX, 5 do
+			if blocked(x) then
+				return true
+			end
+		end
+		return false
+	end
+	-- (shallower first: the podium and the spawn sit near its front)
+	while plaza.maxZ - plaza.minZ > 40 and anyBlocked() do
+		plaza.minZ += 8
+	end
+	while plaza.maxX - plaza.minX > 200 and (blocked(plaza.minX) or blocked(plaza.minX + 5)) do
+		plaza.minX += 10
+	end
+	while plaza.maxX - plaza.minX > 200 and (blocked(plaza.maxX) or blocked(plaza.maxX - 5)) do
+		plaza.maxX -= 10
+	end
+	local P = { wall = wall, pitLane = lane, garages = garages, plaza = plaza, straightZ = 0, halfWidth = halfW, side = -1 }
+	if side > 0 and not leftFrame then
+		-- mirrored across the main straight (z -> -z)
+		local function flip(r: Rect): Rect
+			return { minX = r.minX, maxX = r.maxX, minZ = -r.maxZ, maxZ = -r.minZ }
+		end
+		for k, p in wall do
+			wall[k] = vector.create(p.x, p.y, -p.z)
+		end
+		P.pitLane, P.garages, P.plaza, P.side = flip(lane), flip(garages), flip(plaza), 1
+	end
+	return P
+end
+
+function TrackLayout.paddock(track: Track, leftFrame: boolean?): Paddock
+	local byFrame = paddockCache[track]
+	if not byFrame then
+		byFrame = {}
+		paddockCache[track] = byFrame
+	end
+	local key = leftFrame == true
+	local P = byFrame[key]
+	if not P then
+		P = buildPaddock(track, leftFrame)
+		byFrame[key] = P
+	end
+	return P
+end
+
+-- Which side of the main straight the pits are on: -1 left (a clockwise
+-- lap, or a figure of eight), +1 right (an anticlockwise lap, whose infield
+-- is on the left).
+function TrackLayout.pitSide(track: Track): number
+	local turn = 0
+	for _, smp in track.samples do
+		turn += smp.curv * track.spacing
+	end
+	return if turn < -math.pi then 1 else -1
 end
 
 ----------------------------------------------------------------------------
@@ -3347,7 +3721,7 @@ function TrackLayout.stands(track: Track, grid: Grid, zones: Zones, segments: { 
 		return top
 	end
 	local kept: { Stand } = {}
-	-- main grandstand: infield side of the main straight, facing the pits, on
+	-- main grandstand: across the main straight from the pits, facing them, on
 	-- the level; shorter (and slid along) where the infield is cramped
 	local full = math.min(P.pitLane.maxX - P.pitLane.minX - 40, 280)
 	local mainX = (P.pitLane.minX + P.pitLane.maxX) / 2
@@ -3359,8 +3733,8 @@ function TrackLayout.stands(track: Track, grid: Grid, zones: Zones, segments: { 
 		local slack = (full - len) / 2
 		for _, dx in { 0, -slack, slack, -slack / 2, slack / 2 } do
 			local st: Stand = {
-				center = vector.create(mainX + dx, 0, P.halfWidth + 14 + 14),
-				facing = vector.create(0, 0, -1),
+				center = vector.create(mainX + dx, 0, -P.side * (P.halfWidth + 14 + 14)),
+				facing = vector.create(0, 0, P.side),
 				length = len,
 				depth = 28,
 				name = "Main",
@@ -3470,6 +3844,7 @@ function TrackLayout.facility(track: Track): Rect
 	local b = TrackLayout.bounds(track, margin)
 	local P = TrackLayout.paddock(track)
 	b.minZ = math.min(b.minZ, P.plaza.minZ - 10)
+	b.maxZ = math.max(b.maxZ, P.plaza.maxZ + 10)
 	-- round to 10 studs so the lawn stripes line up
 	b.minX = math.floor(b.minX / 10) * 10
 	b.minZ = math.floor(b.minZ / 10) * 10
@@ -3493,7 +3868,8 @@ function TrackLayout.openGround(track: Track, grid: Grid, zones: Zones, segments
 	for x = f.minX + 30, f.maxX - 30, step do
 		for z = f.minZ + 30, f.maxZ - 30, step do
 			-- the pits and the paddock beside the main straight
-			if z < P.pitLane.maxZ + 10 and x > P.plaza.minX - 30 and x < P.plaza.maxX + 30 then
+			local near = if P.side < 0 then P.pitLane.maxZ else P.pitLane.minZ
+			if P.side * z > P.side * near - 10 and x > P.plaza.minX - 30 and x < P.plaza.maxX + 30 then
 				continue
 			end
 			local i, d = TrackLayout.nearest(grid, x, z, 400)
@@ -4500,10 +4876,11 @@ local function solveFree(spec: Spec): { number }
 		end
 	end
 	assert(#dirs == 2, "the layout needs exactly two free straights")
-	-- a figure of eight (one road crossing the other on a bridge) turns 0 degrees
+	-- clockwise +360, anticlockwise -360; a figure of eight (one road
+	-- crossing the other on a bridge) turns 0 degrees
 	assert(
-		math.abs(theta - 2 * math.pi) < 1e-6 or math.abs(theta) < 1e-6,
-		string.format("corners must add up to +360 degrees, or 0 for a figure of eight (got %.2f)", math.deg(theta))
+		math.abs(math.abs(theta) - 2 * math.pi) < 1e-6 or math.abs(theta) < 1e-6,
+		string.format("corners must add up to +-360 degrees, or 0 for a figure of eight (got %.2f)", math.deg(theta))
 	)
 	local ex, ez = walk(spec, { 0, 0 })
 	-- L1*d1 + L2*d2 = -E
@@ -7902,7 +8279,10 @@ end
 -- a backdrop, a camera mark for the podium view and a confetti cannon.
 -- RaceManager puts the top three karts on Step1..3 after a race and turns
 -- the confetti on (the ParticleEmitters in Confetti) while the results are up.
-function Scenery.podium(parent: Instance, x: number, z: number): Folder
+-- `mirrored`: the caller mirrors it across z afterwards (pits on the right),
+-- so second and third swap sides here to stay on the winner's right and left.
+-- `camDist`: how far in front of the steps the camera mark goes (30).
+function Scenery.podium(parent: Instance, x: number, z: number, mirrored: boolean?, camDist: number?): Folder
 	local folder = Build.folder(parent, "Podium")
 	local base = 0.6
 	Build.part(folder, {
@@ -7920,7 +8300,7 @@ function Scenery.podium(parent: Instance, x: number, z: number): Folder
 		{ place = 3, dx = 11, h = 1.4, color = Color3.fromRGB(196, 120, 60) },
 	}
 	for _, sp in specs do
-		local pos = Vector3.new(x + sp.dx, base + sp.h / 2, z)
+		local pos = Vector3.new(x + (if mirrored then -sp.dx else sp.dx), base + sp.h / 2, z)
 		local step = Build.part(folder, {
 			Name = "Step" .. sp.place,
 			Size = Vector3.new(10.5, sp.h, 9.5),
@@ -7962,7 +8342,7 @@ function Scenery.podium(parent: Instance, x: number, z: number): Folder
 		})
 	end
 	-- where the podium camera sits, looking at the steps
-	local camPos = Vector3.new(x, 9, z + 30)
+	local camPos = Vector3.new(x, 9, z + (camDist or 30))
 	Build.decor(folder, {
 		Name = "Camera",
 		Size = Vector3.new(1, 1, 1),
@@ -8000,9 +8380,30 @@ function Scenery.podium(parent: Instance, x: number, z: number): Folder
 	return folder
 end
 
--- Pit wall, garages with race control, and the paddock with the spawn.
+-- Mirrors every part under `root` across the plane z = 0. The rotation is
+-- M R Nx (M: the world mirror, Nx: a mirror of the part's own X axis), a
+-- proper rotation, so blocks and wedges keep their shapes and signs still
+-- read the right way round.
+local function mirrorZ(root: Instance)
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") then
+			local cf = d.CFrame
+			local p, r, u, b = cf.Position, cf.RightVector, cf.UpVector, -cf.LookVector
+			d.CFrame = CFrame.fromMatrix(
+				Vector3.new(p.X, p.Y, -p.Z),
+				Vector3.new(-r.X, -r.Y, r.Z),
+				Vector3.new(u.X, u.Y, -u.Z),
+				Vector3.new(b.X, b.Y, -b.Z)
+			)
+		end
+	end
+end
+
+-- Pit wall, garages with race control, and the paddock with the spawn. Drawn
+-- on the left of the main straight, then mirrored if the pits go on the
+-- right (TrackLayout.pitSide).
 function Scenery.pits(track: TrackMath.Track, spec: any, parent: Instance): SpawnLocation
-	local P = TrackLayout.paddock(track)
+	local P = TrackLayout.paddock(track, true)
 	local folder = Build.folder(parent, "Pits")
 
 	-- pit wall (concrete, fence on top, boards facing the main straight)
@@ -8186,7 +8587,10 @@ function Scenery.pits(track: TrackMath.Track, spec: any, parent: Instance): Spaw
 
 	-- paddock: podium, spawn and how-to-play board
 	local plaza = P.plaza
-	Scenery.podium(folder, (plaza.minX + plaza.maxX) / 2 + 70, plaza.minZ + 24)
+	-- (a shallow paddock: the podium goes to the back, the camera stays in front of the garages)
+	local plazaDepth = plaza.maxZ - plaza.minZ
+	local podZ = math.max(10, math.min(24, plazaDepth - 32))
+	Scenery.podium(folder, (plaza.minX + plaza.maxX) / 2 + 70, plaza.minZ + podZ, TrackLayout.pitSide(track) > 0, math.min(30, plazaDepth - podZ - 2))
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "LobbySpawn"
 	spawn.Anchored = true
@@ -8237,6 +8641,9 @@ function Scenery.pits(track: TrackMath.Track, spec: any, parent: Instance): Spaw
 	pad.PaddingTop = UDim.new(0.06, 0)
 	pad.PaddingBottom = UDim.new(0.06, 0)
 	pad.Parent = text
+	if TrackLayout.pitSide(track) > 0 then
+		mirrorZ(folder)
+	end
 	return spawn
 end
 
@@ -10113,14 +10520,17 @@ function TrackBuilder.ground(track: TrackMath.Track, root: Instance)
 	-- pit lane markings: speed-limit line along the wall side and a box per garage
 	local paint = folder
 	local lineProps = { Color = COLORS.line, Material = Enum.Material.SmoothPlastic }
-	local zLine = lane.minZ + 1.2
+	-- (the garage side of the lane: its far edge from the main straight)
+	local back = if P.side < 0 then lane.minZ else lane.maxZ
+	local inward = -P.side
+	local zLine = back + inward * 1.2
 	Build.strip(paint, Vector3.new(lane.minX + 2, 0, zLine), Vector3.new(lane.maxX - 2, 0, zLine), UPV, 0.5, lineProps)
 	local g = P.garages
 	local bays = math.max(1, math.floor((g.maxX - g.minX) / 28))
 	local bayW = (g.maxX - g.minX) / bays
 	for b = 0, bays do
 		local x = g.minX + b * bayW
-		Build.strip(paint, Vector3.new(x, 0, lane.minZ + 1.5), Vector3.new(x, 0, lane.minZ + 9), UPV, 0.4, lineProps)
+		Build.strip(paint, Vector3.new(x, 0, back + inward * 1.5), Vector3.new(x, 0, back + inward * 9), UPV, 0.4, lineProps)
 	end
 	return folder
 end
@@ -11501,7 +11911,7 @@ local function updateTrackPanel(state: string?, remaining: number)
 		local tag = card:FindFirstChild("Tag") :: TextLabel
 		tag.Text = if here then "NOW" else ""
 		local key = card:FindFirstChild("Key") :: TextLabel
-		key.Text = if UserInputService.KeyboardEnabled and i <= 6 then tostring(i) else ""
+		key.Text = if UserInputService.KeyboardEnabled and i <= 9 then tostring(i) else ""
 	end
 	for id, card in trackCards do
 		-- with one circuit there is nothing to pick, only the length and READY
@@ -12089,6 +12499,10 @@ function Hud.init(remotes: Folder)
 		-- the track / vote / room panel at the top in the middle, under the
 		-- banner: down the left it covered the steering buttons
 		trackPanel.Position = UDim2.fromOffset(0, 58)
+	else
+		-- in the middle under the banner too: nine cards in two columns are
+		-- too tall for the space under the lap times
+		trackPanel.Position = UDim2.fromOffset(0, 118)
 	end
 
 	-- spectate bar
@@ -12121,10 +12535,7 @@ function Hud.init(remotes: Folder)
 	hintText.AnchorPoint = Vector2.new(0.5, 1)
 
 	-- whole-pixel scale, and centred elements snapped to whole pixels
-	local toCentre: { GuiObject } = { banner, warnText, bigText, toast, lightsFrame, spectateBar, hintText }
-	if UserInputService.TouchEnabled then
-		table.insert(toCentre, trackPanel)
-	end
+	local toCentre: { GuiObject } = { banner, warnText, bigText, toast, lightsFrame, spectateBar, hintText, trackPanel }
 	for _, obj in toCentre do
 		centre(obj)
 	end
@@ -12147,7 +12558,7 @@ function Hud.init(remotes: Folder)
 	end)
 	Input.onAction("Tracks", onTracksKey)
 	Input.onAction("TrackNext", onTrackNext)
-	for n = 1, 6 do
+	for n = 1, 9 do
 		Input.onAction("Track" .. n, function()
 			onTrackNumber(n)
 		end)
@@ -12465,7 +12876,7 @@ function Input.init()
 			fireAction("TrackNext")
 		else
 			-- number keys pick a track on the track panel
-			local digits = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four, Enum.KeyCode.Five, Enum.KeyCode.Six }
+			local digits = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four, Enum.KeyCode.Five, Enum.KeyCode.Six, Enum.KeyCode.Seven, Enum.KeyCode.Eight, Enum.KeyCode.Nine }
 			local n = table.find(digits, k)
 			if n then
 				fireAction("Track" .. n)
@@ -13811,7 +14222,8 @@ local function buildHome()
 	nowShowing.TextStrokeTransparency = 0.5
 end
 
-local CARD_W, CARD_H = 238, 150
+-- three rows of three: room for nine tracks in the panel
+local CARD_W, CARD_H = 238, 100
 local function buildCard(parent: Instance, id: string): TextButton
 	local spec = TrackData.get(id)
 	local t = TrackOutline.track(id)
@@ -13833,14 +14245,15 @@ local function buildCard(parent: Instance, id: string): TextButton
 	thumb.Parent = card
 	TrackOutline.draw(thumb, t, 84, 6, math.max(2, t.n // 120), 2)
 	-- two lines for the longer names ("LAKESIDE / INTERNATIONAL")
-	local nameL = label(card, "Name", string.upper(spec.Name), UDim2.fromOffset(CARD_W - 108, 48), UDim2.fromOffset(100, 8), 13, Enum.Font.GothamBlack, WHITE)
+	local nameL = label(card, "Name", string.upper(spec.Name), UDim2.fromOffset(CARD_W - 108, 32), UDim2.fromOffset(100, 7), 13, Enum.Font.GothamBlack, WHITE)
 	nameL.TextWrapped = true
 	nameL.TextTruncate = Enum.TextTruncate.None
 	nameL.TextYAlignment = Enum.TextYAlignment.Top
 	local km = t.length * Config.StudMeters / 1000
-	label(card, "Info", string.format("%.2f km", km), UDim2.fromOffset(CARD_W - 108, 16), UDim2.fromOffset(100, 60), 13, Enum.Font.GothamMedium, MUTED)
-	label(card, "Best", "", UDim2.fromOffset(CARD_W - 16, 16), UDim2.fromOffset(8, 106), 13, Enum.Font.GothamBold, WHITE)
-	label(card, "Record", "", UDim2.fromOffset(CARD_W - 16, 16), UDim2.fromOffset(8, 126), 12, Enum.Font.GothamMedium, MUTED)
+	label(card, "Info", string.format("%.2f km", km), UDim2.fromOffset(CARD_W - 108, 14), UDim2.fromOffset(100, 41), 12, Enum.Font.GothamMedium, MUTED)
+	label(card, "Best", "", UDim2.fromOffset(CARD_W - 108, 16), UDim2.fromOffset(100, 59), 12, Enum.Font.GothamBold, WHITE)
+	local recL = label(card, "Record", "", UDim2.fromOffset(CARD_W - 108, 14), UDim2.fromOffset(100, 78), 11, Enum.Font.GothamMedium, MUTED)
+	recL.TextTruncate = Enum.TextTruncate.AtEnd
 	card.Parent = parent
 	card.Activated:Connect(function()
 		Sfx.play("Click")
@@ -13861,7 +14274,7 @@ local function buildPractice()
 	grid.Parent = p
 	local layout = Instance.new("UIGridLayout")
 	layout.CellSize = UDim2.fromOffset(CARD_W, CARD_H)
-	layout.CellPadding = UDim2.fromOffset(14, 14)
+	layout.CellPadding = UDim2.fromOffset(14, 10)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = grid
 	for i, id in trackIds() do
@@ -14376,8 +14789,8 @@ local function update(_dt: number)
 			local by = workspace:GetAttribute("RecordBy_" .. id) :: string?
 			local bestL = card:FindFirstChild("Best") :: TextLabel
 			local recL = card:FindFirstChild("Record") :: TextLabel
-			bestL.Text = if best then "YOUR BEST  " .. fmt(best) else "NO TIME YET"
-			recL.Text = if rec then string.format("RECORD  %s  %s", fmt(rec), by or "") else ""
+			bestL.Text = if best then "BEST  " .. fmt(best) else "NO TIME YET"
+			recL.Text = if rec then string.format("REC  %s  %s", fmt(rec), by or "") else ""
 		end
 	elseif screen == "queue" then
 		local since = queuedAt or os.clock()

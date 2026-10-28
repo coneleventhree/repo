@@ -273,7 +273,7 @@ function Input.init()
 			fireAction("TrackNext")
 		else
 			-- number keys pick a track on the track panel
-			local digits = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four, Enum.KeyCode.Five, Enum.KeyCode.Six }
+			local digits = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four, Enum.KeyCode.Five, Enum.KeyCode.Six, Enum.KeyCode.Seven, Enum.KeyCode.Eight, Enum.KeyCode.Nine }
 			local n = table.find(digits, k)
 			if n then
 				fireAction("Track" .. n)
