@@ -20,7 +20,11 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   The mock rejects unknown members and wrong value types using luau-lsp's Roblox definitions
   (`gen.py` takes the path to `globalTypes.d.luau`).
 - Type check: `rojo sourcemap default.project.json -o sourcemap.json` then
-  `luau-lsp analyze --platform=roblox --definitions=globalTypes.d.luau --sourcemap=sourcemap.json src/`.
+  `luau-lsp analyze --platform=roblox --definitions=globalTypes.lsp.d.luau --sourcemap=sourcemap.json src/`.
+- Two definition files (both git-ignored): `globalTypes.d.luau` from luau-lsp `main`
+  (`declare extern type ... with` syntax, the only one gen.py parses) for the mock, and
+  `globalTypes.lsp.d.luau` from the tag matching the installed luau-lsp (1.52.1 reads only
+  `declare class`) for analyze. Raw URL: `raw.githubusercontent.com/JohnnyMorganz/luau-lsp/<ref>/scripts/globalTypes.d.luau`.
 
 ## Circuit notes
 - Part-built circuits (no Terrain; Hillside's / Suzuka's hills are wedge embankments). Every drivable part has a `Surface` attribute

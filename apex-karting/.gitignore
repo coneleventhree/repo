@@ -1,0 +1,4 @@
+# Downloaded Roblox definitions and generated mock inputs
+globalTypes*.d.luau
+tests/mock/gen/
+sourcemap.json
