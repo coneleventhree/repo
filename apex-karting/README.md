@@ -259,6 +259,7 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
   - 나란히 달리다 밀면: 옆 카트가 밀려나지만 스핀은 안 해요.
   - 뒤 모서리를 치면: 맞은 카트가 돌아요(초당 약 230°).
   - 어떤 경우에도 카트가 뜨지 않아요.
+- **세게 부딪혀도 안 붙어요**: 예전엔 범퍼 힘에 상한이 있어서 90 km/h로 옆을 들이받으면 범퍼가 3 studs나 파고들어 두 카트가 한 몸처럼 붙어 버렸어요. 이제 범퍼가 0.8 studs 넘게 눌리면 프레임에 닿은 것처럼 훨씬 단단해져서(파고드는 동안만, 그래서 더 튕기지는 않아요) 1.3 studs 안에서 멈추고 바로 떨어져요(`luau tests/tools/hardhits.luau`).
 
 ## 퍼블리시 전에 할 일
 
@@ -376,10 +377,11 @@ luau tests/collision_test.luau   # 카트끼리 추돌·정면·측면·T자·�
 luau tests/limits_test.luau      # 트랙 리밋 판정·위치 추적·섹터·무효 랩·체커기 22개
 luau tests/tools/bumps.luau      # 범퍼 반응 표 (-a "Stiffness SpringMax Damping MaxAccel"로 다른 값 비교)
 luau tests/tools/lagbumps.luau   # 네트워크 지연별 추돌·정면·옆 비비기 반발 (-a off = contact echo 없이)
+luau tests/tools/hardhits.luau   # 세게 부딪혔을 때 파고든 깊이·붙어 있는 시간 (정면 90+90, T자 90 등)
 luau tests/steering_test.luau    # 키보드 조향 램프·언더스티어·키보드로 한 바퀴 15개
 luau tests/camera_test.luau      # 1인칭 화면 반동·수평 흔들림·머리 쏠림 10개
 luau tests/tools/turnin.luau     # 키를 눌렀을 때 핸들·요(yaw) 반응 표 (스무딩 켬/끔 비교)
-luau tests/race_test.luau        # 랩·순위·지름길 16개
+luau tests/race_test.luau        # 랩·순위(페널티 포함)·지름길 18개
 luau tests/layout_test.luau      # 아홉 서킷 배치 + 언덕·둑 + 도로 접힘 + Suzuka 다리(높이·옹벽·둑) + 피트 위치(반시계 서킷은 오른쪽) 185개
 luau tests/tools/crossing.luau -a Suzuka   # 입체교차: 다리 구간, 다리 밑 높이, 옹벽 위치·높이
 luau tests/tools/ride.luau -a "Hillside 60"   # 승차감: 한 바퀴 동안 차체 떨림(피치·롤 흔들림) 측정, plain = 예전 도로와 비교

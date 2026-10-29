@@ -309,17 +309,28 @@ function RaceProgress.resetPose(self: Race, id: any): (vector?, vector?, vector?
 	return smp.pos, smp.fwd, smp.up
 end
 
--- Racers in race order: finishers by time, then by progress. DNFs last.
-function RaceProgress.standings(self: Race): { Racer }
+-- Racers in race order: finishers by time (plus `penalties[id]` seconds, if
+-- given), then the rest by distance covered. DNFs last. Every list the
+-- players see (standings, positions, the finish message, results, podium)
+-- uses this, so they cannot disagree about who is where.
+function RaceProgress.standings(self: Race, penalties: { [any]: number }?): { Racer }
 	local list: { Racer } = {}
 	for _, id in self.order do
 		table.insert(list, self.racers[id])
+	end
+	local pen = penalties or {}
+	local function total(x: Racer): number
+		return (x.finishTime :: number) + (pen[x.id] or 0)
 	end
 	table.sort(list, function(a, b)
 		if a.finished ~= b.finished then
 			return a.finished
 		end
 		if a.finished and b.finished then
+			local ta, tb = total(a), total(b)
+			if ta ~= tb then
+				return ta < tb
+			end
 			return (a.finishTime :: number) < (b.finishTime :: number)
 		end
 		if a.dnf ~= b.dnf then

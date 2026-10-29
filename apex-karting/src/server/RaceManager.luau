@@ -629,7 +629,15 @@ local function handleEvents(player: Player, events: { RaceProgress.Event }, mode
 				local r = race :: RaceProgress.Race
 				player:SetAttribute("Finished", true)
 				player:SetAttribute("FinishTime", e.time)
-				fire(nil, "Finish", { userId = player.UserId, name = player.DisplayName, position = r.finishCount, time = e.time })
+				-- the place among those home so far, penalties counted
+				local place = 1
+				for i, other in r:standings(penalties :: any) do
+					if other == e.racer then
+						place = i
+						break
+					end
+				end
+				fire(nil, "Finish", { userId = player.UserId, name = player.DisplayName, position = place, time = (e.time :: number) + (penalties[player] or 0) })
 				if r.finishCount == 1 then
 					finishDeadline = now() + R.FinishGrace
 					workspace:SetAttribute("FinishDeadline", finishDeadline)
@@ -925,39 +933,26 @@ local function lightsOut()
 	fire(nil, "Go", { time = raceStart })
 end
 
--- Final classification: finishers by time plus penalties, then the rest by
--- distance covered, retirements last.
+-- Race order with the track-limit penalties counted: finishers by time plus
+-- penalties, then the rest by distance covered, retirements last. The live
+-- standings, positions, finish messages, results and podium all use it (the
+-- live list used to leave the penalties out, so a driver could be shown
+-- finishing first and then stand on the second step).
 local function classification(): { RaceProgress.Racer }
 	local r = race
 	if not r then
 		return {}
 	end
-	local list = r:standings()
-	local function total(x: RaceProgress.Racer): number
-		return (x.finishTime :: number) + (penalties[x.id :: Player] or 0)
-	end
-	table.sort(list, function(a, b)
-		if a.finished ~= b.finished then
-			return a.finished
-		end
-		if a.finished and b.finished then
-			return total(a) < total(b)
-		end
-		if a.dnf ~= b.dnf then
-			return not a.dnf
-		end
-		return a.progress > b.progress
-	end)
-	return list
+	return r:standings(penalties :: any)
 end
 
-local function standingsPayload(final: boolean): { any }
+local function standingsPayload(): { any }
 	local list = {}
 	local r = race
 	if not r then
 		return list
 	end
-	local ordered: { RaceProgress.Racer } = if final then classification() else r:standings()
+	local ordered: { RaceProgress.Racer } = classification()
 	local leader: RaceProgress.Racer? = nil
 	for pos, racer in ordered do
 		local p = racer.id :: Player
@@ -1027,7 +1022,7 @@ local function endRace()
 			racer.dnf = true
 		end
 	end
-	local results = standingsPayload(true)
+	local results = standingsPayload()
 	local ordered = classification()
 	local winner = ordered[1]
 	if winner and winner.finished then
@@ -1060,8 +1055,10 @@ local function endRace()
 		p:SetAttribute("WrongWay", false)
 		p:SetAttribute("OffCourse", false)
 	end
-	workspace:SetAttribute("Podium", #steps == 3)
-	setConfetti(next(onPodium) ~= nil)
+	-- (nobody home, nobody on the steps: no camera on an empty podium)
+	local anyone = next(onPodium) ~= nil
+	workspace:SetAttribute("Podium", #steps == 3 and anyone)
+	setConfetti(anyone)
 	setState("Results", R.ResultsTime)
 	workspace:SetAttribute("RaceStart", nil)
 	workspace:SetAttribute("FinishDeadline", nil)
@@ -1159,7 +1156,7 @@ local function tick()
 			end
 		end
 		if attrDue then
-			for pos, racer in r:standings() do
+			for pos, racer in classification() do
 				local p = racer.id :: Player
 				p:SetAttribute("Position", pos)
 				p:SetAttribute("Lap", math.clamp(racer.lap, 1, LAPS))
@@ -1169,7 +1166,7 @@ local function tick()
 		end
 		if t - lastStandings > 0.5 then
 			lastStandings = t
-			fire(nil, "Standings", { mode = "race", list = standingsPayload(false) })
+			fire(nil, "Standings", { mode = "race", list = standingsPayload() })
 		end
 		if r:allDone() or (finishDeadline and t > finishDeadline) or t > stateEnd or #r.order == 0 then
 			endRace()

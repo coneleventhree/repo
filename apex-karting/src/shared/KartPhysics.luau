@@ -131,6 +131,13 @@ export type BumperConfig = {
 	Damping: number,
 	Friction: number,
 	MaxAccel: number,
+	-- past HardDepth the bumper is squashed flat against the frame: while
+	-- the karts still close, a much stiffer spring (HardStiffness per stud
+	-- past it), not capped by SpringMax, so a hard hit cannot sink one kart
+	-- into the other
+	HardDepth: number?,
+	HardStiffness: number?,
+	HardMax: number?, -- the cap on the total push once that deep (default MaxAccel)
 }
 
 export type WheelSpec = { name: string, x: number, f: number, radius: number, width: number, front: boolean, grip: number, stiffness: number? }
@@ -739,9 +746,18 @@ local function bumperContact(bm: BumperConfig, b: Body, o: Obstacle, t: number):
 	local vn = vector.dot(vrel, n) -- < 0 while closing
 	local closing = math.max(0, -vn)
 	local spring = math.min(bm.Stiffness * maxPen, bm.SpringMax)
+	local cap = bm.MaxAccel
+	local hd = bm.HardDepth
+	if hd and maxPen > hd and vn < 0 then
+		-- only while still closing: it stops the sinking in, like a bumper
+		-- crushing, and gives nothing back (no extra bounce, and karts
+		-- that end up overlapping at rest are not blown apart)
+		spring += (bm.HardStiffness or 0) * (maxPen - hd)
+		cap = bm.HardMax or cap
+	end
 	-- damping resists both closing and parting (less bounce), but never pulls
 	local damp = -bm.Damping * vn * math.min(maxPen / 0.25, 1)
-	local accel = math.clamp(spring + damp, 0, bm.MaxAccel)
+	local accel = math.clamp(spring + damp, 0, cap)
 	local fn = b.mass * accel
 	local vt = vrel - n * vn
 	local vtMag = vector.magnitude(vt)

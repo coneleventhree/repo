@@ -54,6 +54,12 @@ Config.Kart = {
 		Damping = 10,
 		Friction = 0.25,
 		MaxAccel = 500,
+		-- bottomed out: past 0.8 studs a hard hit meets the frame (a 90 km/h
+		-- T-bone sank 3.2 studs in and the karts stayed locked together;
+		-- now ~1.3 and they come apart; tests/tools/hardhits.luau)
+		HardDepth = 0.8,
+		HardStiffness = 3000,
+		HardMax = 4000,
 	},
 	Density = 8,
 	RideHeight = 0.62, -- core centre (centre of mass) above flat ground at rest; karts sit low

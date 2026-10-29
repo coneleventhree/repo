@@ -115,6 +115,16 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   hitOffsetZ. The e2e bot passes A's kart as an obstacle; the mock has Player:GetNetworkPing
   (G.pings[p], default 0.06).
 - `luau tests/tools/bumps.luau -a "S SM D MA"` prints squash/bounce/peak g for typical hits.
+- Hard hits (user: "two karts hit hard and become one body", Oct 29 2026): SpringMax/MaxAccel let a
+  90 km/h T-bone sink 3.2 studs (half a kart) and, with a 0.1 s delay, stay locked 2.7 s. Bumper
+  HardDepth 0.8 / HardStiffness 3000 / HardMax 4000: past 0.8 studs, only while closing (vn < 0), a stiff
+  spring with its own cap. Closing-only matters: always-on blew karts left 2 studs deep at rest apart at
+  100 km/h and raised head-on bounce 0.24 -> 0.46; closing-only it absorbs (head-on 0.17) and rest
+  overlap still eases apart gently. tests/tools/hardhits.luau measures depth / time locked.
+- Race order is one function: RaceProgress.standings(penalties) (finishers by time + penalties). The live
+  standings, Position attributes and the Finish message used the order without penalties while results
+  and the podium counted them (user: "podium and ranking errors"). Podium camera only when someone
+  finished (no camera on an empty podium).
 - Contact echo (user: "collisions feel like bumper cars", Oct 2026): each client pushes only its own
   kart and sees the other unpushed for the network delay, so both kept pushing: rear-end 55 into 30
   at 0.1 s delay had restitution 1.17 (0.27 without delay). KartPhysics.step returns `bumps[i]`

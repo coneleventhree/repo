@@ -74,6 +74,13 @@ do
 	check(math.abs((a.finishTime :: number) - expectA) < 0.02, string.format("A finish time %.3f (expect %.3f)", a.finishTime :: number, expectA))
 	check(#a.lapTimes == 3 and math.abs(a.lapTimes[2] - L / 60) < 0.02, string.format("A lap time %.3f (expect %.3f)", a.lapTimes[2] or -1, L / 60))
 	check(math.abs((b.bestLap :: number) - L / 50) < 0.02, string.format("B best lap %.3f", b.bestLap :: number))
+	-- track-limit penalties count in the order everyone sees (the live list
+	-- once left them out: first home on the screen, second on the podium)
+	local gapAB = (b.finishTime :: number) - (a.finishTime :: number)
+	local pen = { A = gapAB + 2 }
+	local withPen = race:standings(pen)
+	check(withPen[1].id == "B" and withPen[2].id == "A", string.format("A home %.1f s first but %.1f s of penalties: B is ahead", gapAB, pen.A))
+	check(race:standings({ A = gapAB - 1 })[1].id == "A", "a smaller penalty keeps A ahead")
 end
 
 ----------------------------------------------------------------------------
