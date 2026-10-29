@@ -339,8 +339,8 @@ check(hr.Slot2.PlayerName.Text == "Bob" and hr.Slot2.Status.Text == "NOT READY",
 check(hr.Slot3.PlayerName.Text == "OPEN" and hr.Slot12.PlayerName.Text == "OPEN", "the rest OPEN (12 slots)")
 check(hr.Slot2.Kick.Visible and not hr.Slot1.Kick.Visible, "the host can kick Bob (not herself)")
 check(not gr.Slot1.Kick.Visible and not gr.Slot2.Kick.Visible, "a guest kicks nobody")
-check(hr.Prev.Visible and hr.Next.Visible and not hr.HostPicks.Visible, "the host has the track arrows")
-check(not gr.Prev.Visible and gr.HostPicks.Visible, "the guest sees who picks")
+check(hr.Change.Visible and not hr.HostPicks.Visible, "the host has CHANGE TRACK")
+check(not gr.Change.Visible and gr.HostPicks.Visible, "the guest sees who picks")
 check(hr.Action.Title.Text == "START RACE" and hr.Status.Text:find("Waiting for 1 player", 1, true) ~= nil, "host: START RACE, waiting: " .. hr.Status.Text)
 check(gr.Action.Title.Text == "READY", "guest: READY")
 -- START before everyone is ready: nothing
@@ -348,23 +348,51 @@ hr.Action.Activated:Fire()
 R.run(1)
 check(rws:GetAttribute("RaceState") == "Lobby", "START with Bob not ready: still waiting")
 check(hm.Error.Visible and hm.Error.Text:find("READY", 1, true) ~= nil, "the host is told: " .. hm.Error.Text)
--- the guest's buttons do nothing on the server
-gr.Next.Activated:Fire()
+-- the guest's picks do nothing on the server (their picker never shows)
+gr.Change.Activated:Fire()
+R.run(0.2)
+check(not gm.RoomTracks.Visible and gr.Visible, "a guest gets no track cards")
+gm.RoomTracks.Cards.Card_Silverstone.Activated:Fire()
 gr.Len_Short.Activated:Fire()
 R.run(1.5)
-check(rws:GetAttribute("Track") == "Tampines" and rws:GetAttribute("RoomLength") == "Normal", "a guest cannot change the track or length")
--- the host picks the next track and SHORT
-hr.Next.Activated:Fire()
-R.run(1.5)
-check(rws:GetAttribute("Track") == "Silverstone", "NEXT: Silverstone")
+check(rws:GetAttribute("RoomTrack") == "Tampines" and rws:GetAttribute("RoomLength") == "Normal", "a guest cannot change the track or length")
+-- the host opens the cards, picks Silverstone and SHORT
+hr.Change.Activated:Fire()
+R.run(0.2)
+local cardsOpen = 0
+for _, c in hm.RoomTracks.Cards:GetChildren() do
+	if c.Name:sub(1, 5) == "Card_" then
+		cardsOpen += 1
+	end
+end
+check(hm.RoomTracks.Visible and not hr.Visible, "CHANGE TRACK: the track cards instead of the waiting room")
+check(cardsOpen == #Game.sharedModule(R, R.serverCtx, "TrackData").Order, string.format("a card (layout, length, times) for every track (%d)", cardsOpen))
+check(hm.RoomTracks.Cards.Card_Tampines.Ring.Transparency == 0 and hm.RoomTracks.Cards.Card_Silverstone.Ring.Transparency == 1, "the current pick is ringed")
+local swaps = 0
+local swapConn = rws.ChildAdded:Connect(function(c)
+	if c.Name == "Circuit" then
+		swaps += 1
+	end
+end)
+hm.RoomTracks.Cards.Card_Silverstone.Activated:Fire()
+R.run(0.5)
+check(rws:GetAttribute("RoomTrack") == "Silverstone" and not hm.RoomTracks.Visible and hr.Visible, "a card picks it and goes back")
+check(rws:GetAttribute("Track") == "Tampines" and swaps == 0, "the circuit itself stays until START (no parts sent around)")
 check(hr.Track.TrackName.Text == "SILVERSTONE" and gr.Track.TrackName.Text == "SILVERSTONE", "both see it")
 hr.Len_Short.Activated:Fire()
 R.run(0.5)
 check(rws:GetAttribute("RoomLength") == "Short" and rws:GetAttribute("Laps") == 1, "SHORT: 1 lap")
 check(gr.Len_Short.Title.Text == "SHORT 1" and gr.Track.Info.Text:find("1 lap", 1, true) ~= nil, "guest sees: " .. gr.Track.Info.Text)
-hr.Prev.Activated:Fire()
-R.run(1.5)
-check(rws:GetAttribute("Track") == "Tampines" and rws:GetAttribute("Laps") == 2, "PREV: back to Tampines, SHORT there is 2 laps")
+hr.Change.Activated:Fire()
+R.run(0.2)
+hm.RoomTracks.Cards.Card_Tampines.Activated:Fire()
+R.run(0.5)
+check(rws:GetAttribute("RoomTrack") == "Tampines" and rws:GetAttribute("Laps") == 2, "back to Tampines, SHORT there is 2 laps")
+hr.Change.Activated:Fire()
+R.run(0.2)
+hm.RoomTracks.Back.Activated:Fire()
+R.run(0.2)
+check(hr.Visible and not hm.RoomTracks.Visible and rws:GetAttribute("RoomTrack") == "Tampines", "BACK: nothing changed")
 -- Bob gets ready
 gr.Action.Activated:Fire()
 R.run(0.5)
@@ -408,14 +436,21 @@ print("== START, the race, and back to the waiting room ==")
 -- a short session for the test: qualifying ends at once, a 5 s race
 local srvTrackData = Game.sharedModule(R, R.serverCtx, "TrackData")
 srvTrackData.Tracks.Tampines.Qualifying = 0.5
+srvTrackData.Tracks.Silverstone.Qualifying = 0.5
 local srvConfig = Game.sharedModule(R, R.serverCtx, "Config")
 srvConfig.Race.QualiOvertime = 1
 srvConfig.Race.MaxRaceTime = 5
 R.run(0.5)
 check(hr.Action.Title.Text == "START RACE" and hr.Status.Text == "Everyone is ready", "everyone ready again: " .. hr.Status.Text)
+hr.Change.Activated:Fire()
+R.run(0.2)
+hm.RoomTracks.Cards.Card_Silverstone.Activated:Fire()
+R.run(0.5)
 hr.Action.Activated:Fire()
 R.run(0.5)
 check(rws:GetAttribute("RaceState") == "Qualifying", "START: qualifying")
+check(rws:GetAttribute("Track") == "Silverstone" and swaps == 1 and rws:GetAttribute("Laps") == 1, "on the picked track: the circuit swapped once, at START")
+swapConn:Disconnect()
 check(rws:GetAttribute("Ghost") == true, "with ghosts")
 check(not hr.Visible and hudOf(Host).Enabled, "waiting room away, race HUD on")
 local kh, kg = rws.Karts:FindFirstChild("Kart_101"), rws.Karts:FindFirstChild("Kart_202")
@@ -432,7 +467,7 @@ check(back, "after the podium: back to the waiting room")
 R.run(0.5)
 check(hr.Visible and #rws.Karts:GetChildren() == 0, "waiting room up, karts gone")
 check(Guest:GetAttribute("Ready") ~= true and hr.Slot2.Status.Text == "NOT READY", "everyone NOT READY again")
-check(rws:GetAttribute("Track") == "Tampines" and rws:GetAttribute("RoomLength") == "Short", "the host's track and length kept")
+check(rws:GetAttribute("Track") == "Silverstone" and rws:GetAttribute("RoomTrack") == "Silverstone" and rws:GetAttribute("RoomLength") == "Short", "the host's track and length kept")
 -- LEAVE
 gr.Leave.Activated:Fire()
 R.run(1.5)

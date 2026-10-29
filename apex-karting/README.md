@@ -86,7 +86,7 @@ Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언�
 |---|---|
 | **RACE** | 빠른 매칭. 모든 로비 서버가 같은 대기열(MemoryStore)을 봐요. **2명이 모이면 7초 뒤** 출발하고, 12명이 차면 바로 출발해요. 혼자면 계속 기다려요(CANCEL로 취소). 같이 매칭된 사람들이 한 레이스 서버로 함께 이동해서 투표 → 퀄리 → 레이스를 하고, 끝나면 같은 사람들끼리 다음 라운드가 이어져요. |
 | **PRACTICE** | 트랙 카드(모양, 길이, 내 최고 랩, 트랙 레코드)에서 고르고 DRIVE → 나 혼자 쓰는 연습 서버. 거기서도 트랙 패널(M)로 맵을 바꿀 수 있어요. |
-| **PRIVATE ROOM** | CREATE A ROOM → 방 서버의 **대기실**로 가고 4자리 코드가 생겨요. 친구는 메뉴에서 코드를 넣고 JOIN. 대기실은 오버워치 사설방처럼: 12칸 슬롯에 이름과 HOST / READY / NOT READY / OPEN, 방장만 트랙(PREV / NEXT)과 길이(SHORT/NORMAL/LONG)를 바꾸고, 손님은 READY를 눌러요. **모두 READY여야** 방장의 START RACE가 켜져요(혼자면 바로 시작 가능). 시작하면 퀄리 → 레이스 → 포디움 → 다시 대기실(모두 NOT READY로 초기화). 방장은 KICK(두 번 눌러야 함)으로 내보낼 수 있고, 내보낸 사람은 로비에서 "The host removed you from the room" 안내를 보고, 그 방에는 다시 못 들어와요. LEAVE로 로비로. 방장이 나가면 다음 사람이 방장이 돼요. 레이스 중에 들어온 사람은 그 판은 관전하고 다음 판부터 같이 해요. |
+| **PRIVATE ROOM** | CREATE A ROOM → 방 서버의 **대기실**로 가고 4자리 코드가 생겨요. 친구는 메뉴에서 코드를 넣고 JOIN. 대기실은 오버워치 사설방처럼: 12칸 슬롯에 이름과 HOST / READY / NOT READY / OPEN, 방장만 트랙(CHANGE TRACK → 연습 메뉴처럼 트랙 레이아웃 카드에서 고르기)과 길이(SHORT/NORMAL/LONG)를 바꾸고, 손님은 READY를 눌러요. **모두 READY여야** 방장의 START RACE가 켜져요(혼자면 바로 시작 가능). 대기실에서 트랙을 골라도 서킷은 바로 바뀌지 않고, START RACE를 누를 때 한 번만 바뀌어요(서킷 교체는 파트 수만 개를 모두에게 보내는 일이라 고를 때마다 바꾸면 느려졌어요). 시작하면 퀄리 → 레이스 → 포디움 → 다시 대기실(모두 NOT READY로 초기화). 방장은 KICK(두 번 눌러야 함)으로 내보낼 수 있고, 내보낸 사람은 로비에서 "The host removed you from the room" 안내를 보고, 그 방에는 다시 못 들어와요. LEAVE로 로비로. 방장이 나가면 다음 사람이 방장이 돼요. 레이스 중에 들어온 사람은 그 판은 관전하고 다음 판부터 같이 해요. |
 | **RECORDS** | 트랙별 내 최고 랩과 트랙 레코드 |
 | **SETTINGS** | 설정 메뉴 (게임 중에는 화면의 SETTINGS 버튼) |
 

@@ -218,6 +218,8 @@ for _, phone in { false, true } do
 	R.run(0.5)
 	dump(R, H, "roomlobby_host_" .. tag)
 	dump(R, B, "roomlobby_guest_" .. tag)
+	H.PlayerGui.Menu.RoomLobby.Change.Activated:Fire()
+	dump(R, H, "roomtracks_" .. tag)
 end
 
 -- the HUD's track panel (M) on a practice server, every circuit built

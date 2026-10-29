@@ -77,9 +77,10 @@ local playersTitle: TextLabel
 local roomTrackThumb: Frame
 local roomTrackName: TextLabel
 local roomTrackInfo: TextLabel
-local roomPrev: TextButton
-local roomNext: TextButton
+local roomChange: TextButton
 local hostPicks: TextLabel
+local roomPicking = false -- the host has the track cards open
+local roomCards: { [string]: TextButton } = {}
 local roomLengths: { [string]: TextButton } = {}
 local roomAction: TextButton
 local roomStatus: TextLabel
@@ -304,7 +305,8 @@ end
 
 -- three rows of three: room for nine tracks in the panel
 local CARD_W, CARD_H = 238, 100
-local function buildCard(parent: Instance, id: string): TextButton
+-- `registry`: where the card is kept by id; `onPick`: what a click does
+local function buildCard(parent: Instance, id: string, registry: { [string]: TextButton }, onPick: (string) -> ()): TextButton
 	local spec = TrackData.get(id)
 	local t = TrackOutline.track(id)
 	local card = Instance.new("TextButton")
@@ -337,15 +339,14 @@ local function buildCard(parent: Instance, id: string): TextButton
 	card.Parent = parent
 	card.Activated:Connect(function()
 		Sfx.play("Click")
-		selected = id
+		onPick(id)
 	end)
-	cards[id] = card
+	registry[id] = card
 	return card
 end
 
-local function buildPractice()
-	local p = panel("Practice", 790, 460)
-	label(p, "Title", "PRACTICE  -  PICK A TRACK", UDim2.fromOffset(600, 30), UDim2.fromOffset(24, 16), 22, Enum.Font.GothamBlack, ACCENT)
+-- a 3 x 3 grid of track cards in panel `p` (the practice and room pickers)
+local function cardGrid(p: Frame, registry: { [string]: TextButton }, onPick: (string) -> ())
 	local grid = Instance.new("Frame")
 	grid.Name = "Cards"
 	grid.Size = UDim2.fromOffset(746, 320) -- three cards a row (742) and a little spare
@@ -358,8 +359,31 @@ local function buildPractice()
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = grid
 	for i, id in trackIds() do
-		buildCard(grid, id).LayoutOrder = i
+		buildCard(grid, id, registry, onPick).LayoutOrder = i
 	end
+end
+
+-- best and record lines on the cards; the ring on `chosen`
+local function updateCards(registry: { [string]: TextButton }, chosen: string)
+	for id, card in registry do
+		local ring = card:FindFirstChild("Ring") :: UIStroke
+		ring.Transparency = if id == chosen then 0 else 1
+		local best = player:GetAttribute("Best_" .. id) :: number?
+		local rec = workspace:GetAttribute("Record_" .. id) :: number?
+		local by = workspace:GetAttribute("RecordBy_" .. id) :: string?
+		local bestL = card:FindFirstChild("Best") :: TextLabel
+		local recL = card:FindFirstChild("Record") :: TextLabel
+		bestL.Text = if best then "BEST  " .. fmt(best) else "NO TIME YET"
+		recL.Text = if rec then string.format("REC  %s  %s", fmt(rec), by or "") else ""
+	end
+end
+
+local function buildPractice()
+	local p = panel("Practice", 790, 460)
+	label(p, "Title", "PRACTICE  -  PICK A TRACK", UDim2.fromOffset(600, 30), UDim2.fromOffset(24, 16), 22, Enum.Font.GothamBlack, ACCENT)
+	cardGrid(p, cards, function(id)
+		selected = id
+	end)
 	local back = menuButton(p, "Back", "BACK", nil, UDim2.fromOffset(160, 50), UDim2.new(0, 24, 1, -70), false)
 	local drive = menuButton(p, "Drive", "DRIVE", nil, UDim2.fromOffset(240, 50), UDim2.new(1, -264, 1, -70), true)
 	back.Activated:Connect(function()
@@ -483,6 +507,22 @@ end
 
 -- The private room's waiting room (790 x 460, like the track cards).
 local SLOT_W, SLOT_H = 234, 34
+-- the host's track cards for the waiting room: a click picks it (only a note
+-- on the server until START) and goes back
+local function buildRoomTracks()
+	local p = panel("RoomTracks", 790, 460)
+	label(p, "Title", "ROOM  -  PICK THE TRACK", UDim2.fromOffset(600, 30), UDim2.fromOffset(24, 16), 22, Enum.Font.GothamBlack, ACCENT)
+	cardGrid(p, roomCards, function(id)
+		requestRemote:FireServer("Vote", id)
+		roomPicking = false
+	end)
+	local back = menuButton(p, "Back", "BACK", nil, UDim2.fromOffset(160, 50), UDim2.new(0, 24, 1, -70), false)
+	back.Activated:Connect(function()
+		Sfx.play("Click")
+		roomPicking = false
+	end)
+end
+
 local function buildRoomLobby()
 	local p = panel("RoomLobby", 790, 460)
 	label(p, "Title", "PRIVATE ROOM", UDim2.fromOffset(400, 30), UDim2.fromOffset(24, 14), 22, Enum.Font.GothamBlack, ACCENT)
@@ -558,20 +598,11 @@ local function buildRoomLobby()
 	roomTrackName.TextTruncate = Enum.TextTruncate.None
 	roomTrackName.TextYAlignment = Enum.TextYAlignment.Top
 	roomTrackInfo = label(card, "Info", "", UDim2.fromOffset(130, 16), UDim2.fromOffset(102, 66), 13, Enum.Font.GothamMedium, MUTED)
-	roomPrev = menuButton(p, "Prev", "<  PREV", nil, UDim2.fromOffset(115, 34), UDim2.fromOffset(528, 208), false)
-	roomNext = menuButton(p, "Next", "NEXT  >", nil, UDim2.fromOffset(115, 34), UDim2.fromOffset(651, 208), false)
+	roomChange = menuButton(p, "Change", "CHANGE TRACK", nil, UDim2.fromOffset(238, 34), UDim2.fromOffset(528, 208), false)
 	hostPicks = label(p, "HostPicks", "THE HOST PICKS THE TRACK", UDim2.fromOffset(238, 34), UDim2.fromOffset(528, 208), 12, Enum.Font.GothamBold, MUTED, Enum.TextXAlignment.Center)
-	local function step(dir: number)
+	roomChange.Activated:Connect(function()
 		Sfx.play("Click")
-		local ids = trackIds()
-		local i = table.find(ids, (workspace:GetAttribute("Track") :: string?) or "") or 1
-		requestRemote:FireServer("Vote", ids[(i - 1 + dir) % #ids + 1])
-	end
-	roomPrev.Activated:Connect(function()
-		step(-1)
-	end)
-	roomNext.Activated:Connect(function()
-		step(1)
+		roomPicking = true
 	end)
 	label(p, "LengthTitle", "LENGTH", UDim2.fromOffset(238, 18), UDim2.fromOffset(528, 252), 13, Enum.Font.GothamBold, MUTED)
 	for i, len in LENGTHS do
@@ -687,8 +718,8 @@ local function updateRoomLobby()
 		end
 	end
 
-	-- the track
-	local id = (workspace:GetAttribute("Track") :: string?) or TrackData.Default
+	-- the track (the host's pick; the circuit itself changes at START)
+	local id = (workspace:GetAttribute("RoomTrack") :: string?) or (workspace:GetAttribute("Track") :: string?) or TrackData.Default
 	local laps = (workspace:GetAttribute("Laps") :: number?) or 3
 	if id ~= drawnTrack then
 		drawnTrack = id
@@ -701,9 +732,14 @@ local function updateRoomLobby()
 		roomTrackInfo:SetAttribute("Km", t.length * Config.StudMeters / 1000)
 	end
 	roomTrackInfo.Text = string.format("%.2f km  -  %d lap%s", (roomTrackInfo:GetAttribute("Km") :: number?) or 0, laps, if laps == 1 then "" else "s")
-	roomPrev.Visible = amHost
-	roomNext.Visible = amHost
+	roomChange.Visible = amHost
 	hostPicks.Visible = not amHost
+	if not amHost then
+		roomPicking = false
+	end
+	if roomPicking then
+		updateCards(roomCards, id)
+	end
 	local spec = TrackData.get(id)
 	local opts = spec.Lengths or { spec.Laps or 3, spec.Laps or 3, spec.Laps or 3 }
 	local chosen = (workspace:GetAttribute("RoomLength") :: string?) or "Normal"
@@ -835,7 +871,9 @@ local function update(_dt: number)
 		if name == "Home" then
 			want = lobby and screen == "home"
 		elseif name == "RoomLobby" then
-			want = waitingRoom and not leaving
+			want = waitingRoom and not leaving and not roomPicking
+		elseif name == "RoomTracks" then
+			want = waitingRoom and not leaving and roomPicking
 		else
 			want = lobby and string.lower(name) == screen
 		end
@@ -861,17 +899,7 @@ local function update(_dt: number)
 	end
 
 	if screen == "practice" then
-		for id, card in cards do
-			local ring = card:FindFirstChild("Ring") :: UIStroke
-			ring.Transparency = if id == selected then 0 else 1
-			local best = player:GetAttribute("Best_" .. id) :: number?
-			local rec = workspace:GetAttribute("Record_" .. id) :: number?
-			local by = workspace:GetAttribute("RecordBy_" .. id) :: string?
-			local bestL = card:FindFirstChild("Best") :: TextLabel
-			local recL = card:FindFirstChild("Record") :: TextLabel
-			bestL.Text = if best then "BEST  " .. fmt(best) else "NO TIME YET"
-			recL.Text = if rec then string.format("REC  %s  %s", fmt(rec), by or "") else ""
-		end
+		updateCards(cards, selected)
 	elseif screen == "queue" then
 		local since = queuedAt or os.clock()
 		local e = math.floor(os.clock() - since)
@@ -940,6 +968,7 @@ function Menu.init(remotes: Folder)
 	buildRoom()
 	buildRecords()
 	buildRoomLobby()
+	buildRoomTracks()
 
 	errorText = label(gui, "Error", "", UDim2.fromOffset(640, 30), UDim2.new(0.5, -320, 1, -70), 18, Enum.Font.GothamBlack, RED, Enum.TextXAlignment.Center)
 	errorText.TextStrokeTransparency = 0.4

@@ -332,7 +332,9 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
 - Room waiting room (user: "like an Overwatch custom lobby", Oct 28 2026): a room server rests in
   State "Lobby" (RaceManager idle() = Lobby for lobby/room, Practice otherwise; setState freezes
   characters entering/leaving Lobby). No karts. Host (RoomHost/RoomHostName; next player if they
-  leave) picks the track (Vote, RoomTrackCooldown 1 s) and length (Length -> RoomLength); guests
+  leave) picks the track (Vote -> roomPick + workspace RoomTrack only; the circuit is switched once, at
+  START: switching per pick sent the whole circuit to every client each time, user: "prev/next is slow")
+  and length (Length -> RoomLength); guests
   send Ready true/false (player attribute Ready); "Start" only if guestsReady() (every player
   but the host). After Results: resetVotes, back to Lobby. "Kick" {userId}: host only ->
   kicked[userId] (per room code), RaceManager.onKick -> init.server: Rooms.ban (adds to the
@@ -342,7 +344,7 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
 - Client: Menu.luau (ScreenGui "Menu": Home, Practice cards (TrackOutline thumbnails, Best_<id>
   player attributes / Record_<id> workspace attributes from Stats), Queue, Room (code TextBox,
   digits only), Records, RoomLobby (Code, PlayersTitle, Slot1..12 {PlayerName, Status, Kick
-  (tap twice, KickConfirm)}, Track {TrackName, Info}, Prev/Next or HostPicks, Len_<length>,
+  (tap twice, KickConfirm)}, Track {TrackName, Info}, Change (host: opens RoomTracks, the 3 x 3 practice-style cards, Card_<id>, Back) or HostPicks, Len_<length>,
   Leave, Status, Action = READY / NOT READY / START RACE), Error, NowShowing, LobbyButton (press
   twice within LobbyConfirm), fly-by camera bound at Camera+5 in the lobby and the waiting room).
   Child labels must not be called "Name" (the property wins: `slot.Name`). SettingsMenu button

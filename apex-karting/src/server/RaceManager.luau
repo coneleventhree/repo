@@ -92,6 +92,9 @@ local serverMode: ServerMode = "race"
 local roomCode: string? = nil
 local roomHost: number? = nil -- UserId
 local roomLength = "Normal"
+-- the waiting room's pick: only a note until START (switching circuits sends
+-- thousands of parts to every client, so it happens once, then)
+local roomPick: string? = nil
 local wantTrack: string? = nil -- a switch asked for a circuit still being built
 local kicked: { [number]: boolean } = {} -- UserIds the room's host removed
 
@@ -467,6 +470,8 @@ local function activate(c: Circuit)
 	c.folder.Parent = workspace
 	workspace:SetAttribute("Track", c.id)
 	workspace:SetAttribute("TrackName", c.spec.Name)
+	roomPick = nil
+	workspace:SetAttribute("RoomTrack", c.id)
 	workspace:SetAttribute("Laps", LAPS)
 	Stats.setTrack(c.id)
 	resetTiming()
@@ -1273,10 +1278,12 @@ local function onRequest(player: Player, kind: unknown, arg: unknown)
 				switchTo(arg)
 			end
 		elseif state == "Lobby" and serverMode == "room" then
-			-- the waiting room: only the host picks (no karts to wait for)
-			if isHost(player) and arg ~= current.id and now() - lastTrackChange > Config.Lobby.RoomTrackCooldown then
-				switchTo(arg)
-				LAPS = lapsFor(current.spec, roomLength)
+			-- the waiting room: only the host picks; the circuit itself is
+			-- swapped in when they press START
+			if isHost(player) then
+				roomPick = arg
+				workspace:SetAttribute("RoomTrack", arg)
+				LAPS = lapsFor(circuits[arg].spec, roomLength)
 				workspace:SetAttribute("Laps", LAPS)
 			end
 		elseif state == "Intermission" then
@@ -1294,7 +1301,7 @@ local function onRequest(player: Player, kind: unknown, arg: unknown)
 			publishVotes()
 		elseif state == "Lobby" and isHost(player) then
 			roomLength = arg
-			LAPS = lapsFor(current.spec, arg)
+			LAPS = lapsFor(circuits[roomPick or current.id].spec, arg)
 			workspace:SetAttribute("RoomLength", arg)
 			workspace:SetAttribute("Laps", LAPS)
 		end
@@ -1302,6 +1309,10 @@ local function onRequest(player: Player, kind: unknown, arg: unknown)
 		-- the room's host starts the race on the track and length they
 		-- picked, once every guest is ready
 		if state == "Lobby" and isHost(player) and guestsReady() then
+			local pick = roomPick
+			if pick and pick ~= current.id then
+				switchTo(pick)
+			end
 			LAPS = lapsFor(current.spec, roomLength)
 			workspace:SetAttribute("Laps", LAPS)
 			resetVotes()

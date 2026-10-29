@@ -253,7 +253,6 @@ Config.Lobby = {
 	TeleportDelay = 0.4, -- seconds between "teleporting" on the client and the teleport
 	LobbyConfirm = 3, -- the LOBBY button asks to be pressed again within this
 	KickConfirm = 3, -- the room's KICK asks to be pressed again within this
-	RoomTrackCooldown = 1, -- the waiting room: seconds between the host's track changes
 }
 
 -- Player settings (the SETTINGS menu), saved with each player's data. Each
