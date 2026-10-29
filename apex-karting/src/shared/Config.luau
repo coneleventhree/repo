@@ -228,7 +228,9 @@ Config.Race = {
 	ResetClear = 10.5,
 	ResetGhostTime = 1.0,
 	TrackChangeCooldown = 3, -- practice: seconds between track changes
-	TrackLoadTime = 3, -- seconds before practice karts return after a track change
+	-- after a track change everyone waits (anchored, under a loading screen)
+	-- until their client has the new circuit; at most this many seconds
+	TrackLoadTimeout = 20,
 	OffTrackAllowance = 60, -- studs beyond the road edge that still count as on course
 }
 

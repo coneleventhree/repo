@@ -265,7 +265,19 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
 - Readability over realism (user: "some maps are too dark to see the road", on a phone): Night
   has ambient 105/110/130, outdoor 125/132/160, exposure 0.6, ColorCorrection Brightness 0.04
   (`lift`) and a thin, lighter haze; Cloudy (Silverstone) exposure 0.2, clouds 0.5, a little more
-  ambient. Sunset is unused since Pine Valley went.
+  ambient.
+- No night races (user, Oct 29 2026: "the night circuits hurt my eyes; make them morning, noon or
+  evening"): Harbour is "Morning" (clock 9.2, new preset; renamed Harbour Circuit, Id unchanged for
+  saved bests), Yas Marina "Sunset" (lightened: ambient 96/86/80, outdoor 172/150/132, exposure 0.25).
+  The Night preset stays in Scenery but no track uses it; e2e checks that none does. Lamps only
+  light up at night, so TrackLights is decoration now.
+- Track changes (user: "switching map in practice, the character falls through the floor"): the new
+  circuit (thousands of parts) reaches clients well after switchTo pivots characters to its paddock.
+  RaceManager now anchors each character's root and sets loadingTrack[p] (give-up TrackLoadTimeout 20 s);
+  karts spawned meanwhile are anchored (heldKart, also kept at GO); client TrackLoader (on RaceEvent
+  "Track") shows the LoadingGui until rays find the floor under the character and the grid road at
+  (-40, 0) in workspace.Circuit (TrackId = new id), min 0.8 s, then Request "TrackLoaded" -> releaseLoading.
+  The e2e bot answers "Track" with TrackLoaded itself.
 - Menus with nine tracks: Menu practice cards are 3 x 3 (CARD_H 100), the HUD track panel sits centred
   under the banner on desktop too (it ran off the bottom down the left), number keys 1-9.
 - Mock note: a static part that leaves and re-enters workspace keeps its ray-index entry

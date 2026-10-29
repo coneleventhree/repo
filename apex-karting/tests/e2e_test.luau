@@ -393,6 +393,13 @@ local function startBot(player)
 	params.FilterDescendantsInstances = { ws.Circuit.Track }
 	local currentKart = nil
 	G.spawnIn(botCtx, function()
+		-- a real client's TrackLoader says when it has a new circuit
+		local remotes = G.game:GetService("ReplicatedStorage").Remotes
+		remotes.RaceEvent.OnClientEvent:Connect(function(kind, data)
+			if kind == "Track" then
+				remotes.Request:FireServer("TrackLoaded", data.id)
+			end
+		end)
 		rs.PreSimulation:Connect(function(dt)
 			local k = kartOf(player)
 			if k ~= currentKart then
@@ -1030,8 +1037,16 @@ do
 		return ws:GetAttribute("Track") == "Silverstone"
 	end)
 	check(switched, "key 2 switches practice to Silverstone")
-	G.run(1)
+	-- held in the new paddock under a loading screen until this client has
+	-- the circuit (it used to fall through ground that had not arrived)
+	local root = A.Character and A.Character:FindFirstChild("HumanoidRootPart")
+	local screen = A.PlayerGui:FindFirstChild("A1Loading")
+	check(root ~= nil and root.Anchored and screen ~= nil, "loading screen up, the character held still")
 	check(kartOf(A) == nil, "no kart while the new circuit loads")
+	local loaded = G.run(5, function()
+		return A.PlayerGui:FindFirstChild("A1Loading") == nil
+	end)
+	check(loaded and root ~= nil and not root.Anchored, "once the client has the circuit: screen gone, character let go")
 	G.run(5, function()
 		return kartOf(A) ~= nil and KC.isDriving()
 	end)
@@ -1073,7 +1088,8 @@ do
 	check(A:GetAttribute("PersonalBest") == pbFirst and ws:GetAttribute("TrackRecord") == recFirst, "first track's best lap and record come back")
 	noErrors("track switching")
 
-	-- the night circuit: dark sky, the lamps light the track
+	-- the harbour circuit: a bright morning (no circuit races at night any
+	-- more, the user found them tiring to look at)
 	local lighting = G.game:GetService("Lighting")
 	G.run(3.5) -- track change cooldown
 	G.pressKey("M")
@@ -1082,22 +1098,28 @@ do
 	G.pressKey("Five")
 	G.run(0.2)
 	G.releaseKey("Five")
-	local night = G.run(5, function()
+	local harbour = G.run(5, function()
 		return ws:GetAttribute("Track") == "Harbour"
 	end)
 	G.run(5, function()
 		return kartOf(A) ~= nil and KC.isDriving()
 	end)
 	G.run(0.5)
-	check(night and ws.Circuit:GetAttribute("TrackId") == "Harbour", "key 5 switches practice to the Harbour Night Circuit")
-	-- night, but with enough fill light to read the road on a phone
-	check(lighting.ClockTime > 20 and lighting.Ambient.R > 0.35 and lighting.ExposureCompensation >= 0.5, string.format("it is night there (clock %.1f) but the road stays readable (ambient %.2f)", lighting.ClockTime, lighting.Ambient.R))
-	checkGeometry("Harbour Night Circuit")
+	check(harbour and ws.Circuit:GetAttribute("TrackId") == "Harbour", "key 5 switches practice to the Harbour Circuit")
+	check(lighting.ClockTime > 7 and lighting.ClockTime < 11 and lighting.Brightness >= 2, string.format("morning there (clock %.1f, brightness %.1f)", lighting.ClockTime, lighting.Brightness))
+	local nightTracks = {}
+	for _, id in TrackData.Order do
+		if TrackData.get(id).Sky == "Night" then
+			table.insert(nightTracks, id)
+		end
+	end
+	check(#nightTracks == 0, "no circuit races at night: " .. table.concat(nightTracks, ", "))
+	checkGeometry("Harbour Circuit")
 	G.run(15)
 	local k = kartOf(A)
 	local i, lat = TrackMath.nearest(track, k.PrimaryPart.Position)
-	check(math.abs(lat) < track.samples[i].width / 2 and i > 20, string.format("drives the night circuit (sample %d of %d)", i, track.n))
-	noErrors("night circuit")
+	check(math.abs(lat) < track.samples[i].width / 2 and i > 20, string.format("drives the harbour circuit (sample %d of %d)", i, track.n))
+	noErrors("harbour circuit")
 
 	-- the hill circuit: embankments under the raised road, drive up the hill
 	G.run(3.5)

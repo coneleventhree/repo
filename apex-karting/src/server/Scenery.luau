@@ -70,9 +70,10 @@ local function faceTowards(cf: CFrame, target: Vector3): Enum.NormalId
 	return if cf.RightVector:Dot(target - cf.Position) > 0 then Enum.NormalId.Right else Enum.NormalId.Left
 end
 
--- Weather per circuit (TrackData `Sky`): "Sunny" (default), "Cloudy",
--- "Sunset" (low warm sun) or "Night" (dark sky; the circuit's own lamps
--- light the track, see Scenery.trackLights).
+-- Weather per circuit (TrackData `Sky`): "Sunny" (default), "Morning",
+-- "Cloudy", "Sunset" (low warm sun) or "Night" (dark sky; the circuit's own
+-- lamps light the track, see Scenery.trackLights). No circuit races at night
+-- any more: the user found the night circuits tiring to look at.
 type Sky = { clock: number, brightness: number, exposure: number, density: number, haze: number, glare: number, color: Color3, decay: Color3, saturation: number, contrast: number, clouds: number, ambient: Color3, outdoor: Color3, tint: Color3?, lift: number? }
 local DAY_AMBIENT = Color3.new(0.25, 0.25, 0.28)
 local DAY_OUTDOOR = Color3.new(0.55, 0.55, 0.6)
@@ -84,6 +85,14 @@ local SKIES: { [string]: Sky } = {
 		saturation = 0.1, contrast = 0.06, clouds = 0,
 		ambient = DAY_AMBIENT, outdoor = DAY_OUTDOOR,
 	},
+	-- a clear morning: the sun still low in the east, cool bright light
+	Morning = {
+		clock = 9.2, brightness = 2.7, exposure = 0.15,
+		density = 0.24, haze = 0.8, glare = 0.2,
+		color = Color3.fromRGB(214, 226, 240), decay = Color3.fromRGB(150, 168, 196),
+		saturation = 0.08, contrast = 0.05, clouds = 0.15,
+		ambient = Color3.new(0.28, 0.29, 0.32), outdoor = Color3.new(0.6, 0.62, 0.68),
+	},
 	-- a bright English summer afternoon under broken cloud (the user found
 	-- the darker first version hard to read on a phone)
 	Cloudy = {
@@ -93,13 +102,14 @@ local SKIES: { [string]: Sky } = {
 		saturation = 0, contrast = 0.05, clouds = 0.5,
 		ambient = Color3.new(0.3, 0.3, 0.33), outdoor = Color3.new(0.62, 0.62, 0.67),
 	},
-	-- late afternoon: low golden sun and long shadows through the trees
+	-- early evening: low golden sun and long shadows, with enough fill light
+	-- to read the road on a phone (lighter than the first version)
 	Sunset = {
-		clock = 17.7, brightness = 2.2, exposure = 0.15,
-		density = 0.3, haze = 1.6, glare = 0.4,
-		color = Color3.fromRGB(240, 196, 150), decay = Color3.fromRGB(180, 120, 90),
-		saturation = 0.15, contrast = 0.08, clouds = 0.25,
-		ambient = Color3.fromRGB(70, 58, 52), outdoor = Color3.fromRGB(150, 120, 100),
+		clock = 17.4, brightness = 2.4, exposure = 0.25,
+		density = 0.28, haze = 1.2, glare = 0.35,
+		color = Color3.fromRGB(240, 200, 158), decay = Color3.fromRGB(180, 128, 100),
+		saturation = 0.12, contrast = 0.06, clouds = 0.25,
+		ambient = Color3.fromRGB(96, 86, 80), outdoor = Color3.fromRGB(172, 150, 132),
 		tint = Color3.fromRGB(255, 240, 225),
 	},
 	-- after dark, but a floodlit circuit: a dark blue sky and a road that is

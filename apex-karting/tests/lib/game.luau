@@ -57,6 +57,7 @@ Game.ClientSpec = {
 		module("ChaseCamera", "src_client_ChaseCamera_luau"),
 		module("Hud", "src_client_Hud_luau"),
 		module("Menu", "src_client_Menu_luau"),
+		module("TrackLoader", "src_client_TrackLoader_luau"),
 		module("TrackOutline", "src_client_TrackOutline_luau"),
 	},
 }

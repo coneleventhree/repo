@@ -8,11 +8,11 @@
 | Silverstone | 5,858 studs (약 1.6 km) | 짧게 1 / 보통 2 / 길게 3 | 실제 F1 실버스톤 GP 레이아웃, 고속 코너 위주 |
 | Lakeside International | 3,665 studs (약 1.03 km) | 2 / 3 / 5 | 국제 대회형 카트 서킷, 빠르고 흐르는 코너, 서킷 옆 호수 |
 | Hillside Raceway | 3,776 studs (약 1.06 km) | 2 / 3 / 5 | 언덕 서킷: 오르막·내리막(높이차 약 8.8 m), 오르막 끝 고속 킹크(Sling), 뱅크 코너 3개, 핸들을 계속 잡고 도는 긴 고속 코너, 소나무 |
-| Harbour Night Circuit | 3,110 studs (약 0.87 km) | 2 / 3 / 5 | 야간 레이스, 가로등 조명, 긴 대각선 직선과 깊은 헤어핀 |
+| Harbour Circuit | 3,110 studs (약 0.87 km) | 2 / 3 / 5 | 아침 항구, 부두를 따라 선 가로등, 긴 대각선 직선과 깊은 헤어핀 |
 | Suzuka | 4,645 studs (약 1.3 km) | 1 / 2 / 3 | 실제 스즈카 GP 레이아웃을 3D로: 8자 입체교차(다리), 높이차 약 9 m, S자·데그너·헤어핀·스푼·130R·시케인 |
 | Catalunya | 3,161 studs (약 0.89 km) | 2 / 3 / 5 | 스페인 GP(바르셀로나): 긴 오른쪽 Turn 3, 언덕을 오르내리는 레이아웃, 빠른 마지막 코너 |
 | Zandvoort | 3,114 studs (약 0.87 km) | 2 / 3 / 5 | 네덜란드 GP: 모래언덕 위아래, 뱅크 코너 2개(Hugenholtz 헤어핀, 마지막 Arie Luyendyk) |
-| Yas Marina | 3,341 studs (약 0.94 km) | 2 / 3 / 5 | 아부다비 GP(2021 레이아웃): 야간 레이스, 헤어핀 뒤 긴 직선, 살짝 뱅크된 긴 Turn 9, 호텔 구간 |
+| Yas Marina | 3,341 studs (약 0.94 km) | 2 / 3 / 5 | 아부다비 GP(2021 레이아웃): 해 질 녘 레이스, 헤어핀 뒤 긴 직선, 살짝 뱅크된 긴 Turn 9, 호텔 구간 |
 
 Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언덕이 있고 나머지는 평평한 전용 서킷이에요. 공통 시설: 아스팔트, 빨강·흰색 연석, 파랑·빨강으로 칠한 run-off(런오프, 코너 바깥 포장 탈출로), 느린 코너의 자갈 트랩, 인조 잔디 갓길, 타이어 방호벽과 펜스, 피트 레인·개러지·레이스 컨트롤 타워, 관중석, 스폰서 브리지, 마셜 포스트, 조명탑, 외곽 담장과 주차장.
 
@@ -27,7 +27,7 @@ Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언�
 | 트랙 | 자동 주행 랩(가운데 라인) | 특징 |
 |---|---|---|
 | Lakeside International | 약 55초 | 183 m 출발 직선 → 빠른 오른쪽 Boathouse, 양 끝의 헤어핀(Pier, Reed), 180도 Carousel, Esses, 빠른 더블 라이트 Willow. 펜스 안쪽에서 가장 넓은 빈 땅에 호수가 생겨요(들어가면 거의 멈출 만큼 느려져요). |
-| Harbour Night Circuit | 약 49초 | 밤 레이스. 트랙 옆에 약 55 studs마다 넓게 비추는 가로등이 서 있고 조명탑도 켜져요. 밤하늘은 어둡지만 도로는 휴대폰 화면에서도 잘 보일 만큼 밝게 맞췄어요. 긴 대각선 직선 끝의 깊은 Harbour 헤어핀, 풀 스로틀로 지나는 Breakwater 더블 킹크(슬립스트림 추월 포인트), 구불구불한 인필드. |
+| Harbour Circuit | 약 49초 | 맑은 아침의 항구. 트랙 옆에 약 55 studs마다 가로등이 서 있어요(예전엔 밤 레이스였는데 눈이 피곤해서 아침으로 바꿨어요). 긴 대각선 직선 끝의 깊은 Harbour 헤어핀, 풀 스로틀로 지나는 Breakwater 더블 킹크(슬립스트림 추월 포인트), 구불구불한 인필드. |
 
 세 트랙 모두 코너마다 이름 보드가 있어요.
 
@@ -73,7 +73,7 @@ Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언�
   - Zandvoort: 모래언덕(실제 약 9 m)을 잘 느끼도록 높이만 가로 비율의 1.6배로 키웠어요(최대 8.6 studs). Hugenholtz(12° 뱅크 헤어핀)와 Arie Luyendyk(9° 뱅크 마지막 코너)는 실제처럼 뱅크가 있어요(실제는 19° / 18°지만 서스펜션 없는 카트가 낮은 fps에서도 안정적인 각도로 줄였어요).
   - Yas Marina: 실제로 거의 평지라 높이차가 작아요(최대 약 8 studs). 긴 왼쪽 Turn 9는 2021년 개편처럼 살짝(6°) 뱅크가 있어요.
 - **Yas Marina는 반시계 방향**이라 피트·개러지·패독이 출발 직선의 오른쪽(트랙 바깥)에 있고, 메인 관중석은 반대쪽이에요. 다른 서킷은 모두 왼쪽이에요.
-- Yas Marina는 밤 레이스(가로등 + 조명탑), Zandvoort는 흐린 날씨, Catalunya는 맑은 날씨에 소나무가 있어요.
+- Yas Marina는 해 질 녘(실제 아부다비 GP처럼 저녁 출발), Zandvoort는 흐린 날씨, Catalunya는 맑은 날씨에 소나무가 있어요. 밤 서킷은 없어요(눈이 피곤해서 없앴어요).
 - 코너 이름 보드: Zandvoort는 실제 코너 이름(Tarzan, Hugenholtz, Scheivlak, Arie Luyendyk 등), Catalunya와 Yas Marina는 실제 코너 이름에 스폰서 이름이 많아서 Turn 번호로 했어요.
 - 실제 서킷 이름을 그대로 썼어요. 퍼블리시할 때 상표 문제가 걱정되면 `Shared/TrackData`의 `Name`만 바꾸면 돼요.
 - 만드는 법(코너 맞추기, 직선 줄이기, 고도)은 `tools/design/gp/`에 있어요(`tools/design/README.md`).
@@ -109,7 +109,7 @@ Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언�
 
 ### 트랙 고르기
 
-- **연습 중(혼자)**: 트랙 패널에서 고르면 바로 바뀌어요. 카트는 새 서킷이 다 로드되도록 3초 뒤에 다시 나와요.
+- **연습 중(혼자)**: 트랙 패널에서 고르면 바로 바뀌어요. 바뀌는 동안 로딩 화면이 뜨고 캐릭터는 새 패독에 고정돼 있어요. 내 화면에 새 서킷(패독 바닥과 그리드 도로)이 다 도착하면 로딩 화면이 사라지고 카트가 나와요. 예전에는 3초만 기다려서, 서킷이 늦게 오면 캐릭터가 바닥 아래로 떨어졌어요. 트랙이 바뀌는 다른 경우(레이스 투표, 방의 START)도 같아요.
 - **레이스 전 대기 시간**: 트랙 패널이 저절로 열리고, 카드를 눌러 투표해요(다시 누르면 바꿀 수 있어요). 카운트다운이 끝나면 가장 많이 받은 트랙으로 레이스해요. 동점이면 추첨, 아무도 투표 안 하면 지금 트랙 그대로예요.
 - 개인 최고 랩과 트랙 레코드는 트랙마다 따로 저장돼요.
 
@@ -288,7 +288,7 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 | `Kart.Bumper` | 범퍼 모양(HalfWidth, Front, Rear, Corner)과 충돌 반응: Stiffness·SpringMax(밀어내는 힘과 상한), Damping(충격 흡수), Friction(문질러짐), MaxAccel(최대 힘) | 3.3 / 3.75 / 3.0 / 0.7, 160 / 160, 10, 0.25, 500 |
 | `Collision.Lead`, `PingShare`, `LeadMax`, `Range` | 상대 카트를 앞당겨 계산하는 시간(기본 + 핑 비율, 최대) / 검사 거리 | 0.05 s, 0.5, 0.25 s, 40 studs (슬립스트림도 이 거리까지 봐요) |
 | `Race.MinPlayers` | 레이스 시작 인원 | 2 |
-| `Race.TrackChangeCooldown`, `TrackLoadTime` | 연습 중 트랙 변경 간격 / 바꾼 뒤 카트가 다시 나오는 시간 | 3 / 3 초 |
+| `Race.TrackChangeCooldown`, `TrackLoadTimeout` | 연습 중 트랙 변경 간격 / 새 서킷 로딩을 기다리는 최대 시간 | 3 / 20 초 |
 | `Race.IntermissionTime`, `ReadyCountdown`, `FinishGrace` | 대기 시간 / 모두 READY일 때 남는 시간 / 1등 뒤 남은 시간 | 20 / 3 / 30 초 |
 | `Race.QualiOvertime`, `ResultsTime` | 체커기 뒤 마지막 랩 최대 시간 / 포디움 시간 | 90 / 8 초 |
 | `Race.QualiRunUp`, `GhostTransparency` | 1랩 퀄리 출발 위치(출발선 뒤 studs) / 고스트 카트 투명도 | 70 / 0.6 |
@@ -311,12 +311,12 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 | `Qualifying` | 퀄리파잉 시간(초) | 120 / 180 (150) |
 | `Sectors` | 섹터 경계(랩 길이 비율, 생략하면 3등분) | - |
 | `Name`, `Blurb` | 게임에 보이는 이름 / 투표 카드 설명 | |
-| `Sky` | 날씨 (`"Sunny"`, `"Cloudy"`, `"Sunset"` 해 질 녘, `"Night"` 밤) | Sunny / Cloudy (Sunny, Sunset, Night) |
+| `Sky` | 날씨 (`"Sunny"` 낮, `"Morning"` 아침, `"Cloudy"`, `"Sunset"` 해 질 녘, `"Night"` 밤: 지금은 안 씀) | Sunny / Cloudy (Sunny, Morning, Sunset) |
 | `Lake` | 펜스 안쪽, 가장 넓은 빈 땅에 호수 | Lakeside |
 | `Trees` | 빈 땅(언덕 경사 포함)에 소나무 | Hillside, Suzuka |
 | 코너·직선의 `y`, 코너의 `bank` | 그 구간 끝의 도로 높이 / 코너 안쪽으로 기울인 각도(도). 높아진 곳 아래엔 잔디 둑이 자동으로 생겨요. 한 도로가 다른 도로 위를 지나가면(8자) 다리와 옹벽이 자동으로 생기고, 코너 각도 합이 0°여도 돼요 | Hillside, Suzuka |
 | `BankSmoothing` | 뱅크가 바뀌는 구간 길이 | 22 (Hillside 40) |
-| `TrackLights` | 트랙 옆 가로등 (야간 레이스용) | Harbour |
+| `TrackLights` | 트랙 옆 가로등 (밤일 때만 켜짐) | Harbour, Yas Marina |
 | `PitStyle` | `"Wing"`이면 피트 위 날개 지붕 | - / Wing |
 | `CornerBoards` | 코너 이름 보드 | - / 켬 (켬) |
 | `Bridge` | 스폰서 브리지를 놓을 직선 이름 | 가장 긴 직선 / Hangar Straight |
@@ -380,7 +380,7 @@ luau tests/tools/ride.luau -a "Hillside 60"   # 승차감: 한 바퀴 동안 차
 luau tests/tools/speedmap.luau -a Hillside > hs.csv && python3 tests/tools/speedmap.py hs.csv hs.png   # 자동 주행 속도 지도(코너별 최저 속도, 높이, 스로틀·핸들) — 코너 설계용
 python3 tests/mock/gen.py globalTypes.d.luau && luau tests/sound_test.luau # 엔진 rpm(공회전·클러치·속도), 잔디 덜컹거림, 연석 드르르 14개
 python3 tests/mock/gen.py globalTypes.d.luau && luau tests/touch_test.luau # 모바일 터치: 손가락이 버튼 밖에서 떼져도 버튼이 풀리는지, 카메라가 혼자 돌지 않는지 13개
-python3 tests/mock/gen.py globalTypes.d.luau && luau tests/e2e_test.luau   # 실제 스크립트로 연습(섹터·델타·트랙 리밋) + 설정 메뉴·소리 + 카메라 + 범퍼 + 트랙 변경 + 길이 투표·READY·1랩 고스트 퀄리파잉·그리드·레이스(경고·페널티)·포디움 + Silverstone 레이스 + 야간 서킷 + 언덕 서킷(둑·구멍 검사, 언덕 주행) + 새 효과음(개인 최고·경고·페널티·깃발·포디움) + HUD 글자 선명도 + 같이 리셋한 카트 겹침 방지·리셋 고스트 294개 (약 4분)
+python3 tests/mock/gen.py globalTypes.d.luau && luau tests/e2e_test.luau   # 실제 스크립트로 연습(섹터·델타·트랙 리밋) + 설정 메뉴·소리 + 카메라 + 범퍼 + 트랙 변경 + 길이 투표·READY·1랩 고스트 퀄리파잉·그리드·레이스(경고·페널티)·포디움 + 트랙 변경 로딩(캐릭터 고정·로딩 화면) + Silverstone 레이스 + 아침 서킷·밤 서킷 없음 + 언덕 서킷(둑·구멍 검사, 언덕 주행) + 새 효과음(개인 최고·경고·페널티·깃발·포디움) + HUD 글자 선명도 + 같이 리셋한 카트 겹침 방지·리셋 고스트 297개 (약 4분)
 python3 tests/mock/gen.py globalTypes.d.luau && luau tests/lobby_test.luau # 로비 메뉴·fly-by, 로딩 화면, PRACTICE 서버 이동, RACE 대기열(2명+7초, 다른 서버 대기자), 방 코드, 실패 처리, 연습 서버, 방 대기실(슬롯·READY·방장 트랙/길이·START 조건·KICK·재입장 막기·레이스 후 대기실 복귀·LEAVE), Studio 제자리 전환·KICK 166개 (약 4분)
 luau tests/tools/dump_gui.luau > gui.txt && python3 tests/tools/render_gui.py gui.txt out/  # 메뉴·트랙 카드·방 코드·매칭·기록·로딩 화면·방장 HUD를 PC(1280×720)와 폰(844×390) 크기로 그림 (gen.py 먼저)
 python3 sounds/mix_levels.py     # 소리별 들리는 크기(휴대폰·노트북·헤드폰, 엔진 대비 dB)

@@ -43,11 +43,11 @@ META = {
 	Trees = true,
 	Sky = "Cloudy",'''),
     "YasMarina": dict(
-        comment="Yas Marina (Abu Dhabi GP, 2021 layout) at night under lamp posts: the real\n"
+        comment="Yas Marina (Abu Dhabi GP, 2021 layout) at sunset (the race starts at dusk): the real\n"
         "-- centre line at 0.8 studs per metre, nearly flat like the real one, the two\n"
         "-- long straights shortened, the long Turn 9 left gently banked.",
         fields='''	Name = "Yas Marina",
-	Blurb = "Abu Dhabi GP - night race, hairpin and hotel section",
+	Blurb = "Abu Dhabi GP - sunset race, hairpin and hotel section",
 	Laps = 3,
 	Lengths = { 2, 3, 5 },
 	Qualifying = 150,
@@ -55,7 +55,7 @@ META = {
 	Smoothing = 10,
 	BankSmoothing = 40,
 	CornerBoards = true,
-	Sky = "Night",
+	Sky = "Sunset",
 	TrackLights = true,'''),
 }
 

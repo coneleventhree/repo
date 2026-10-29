@@ -107,6 +107,11 @@ local karts: { [Player]: Model } = {}
 local numbers: { [Player]: number } = {}
 local lastReset: { [Player]: number } = {}
 local spawnHold: { [Player]: number } = {} -- onCharacter is about to give a kart
+-- after a track change, until the player's client has the new circuit (or
+-- the timeout): their character, and any kart they get, stays anchored, or
+-- it fell through ground that had not arrived yet
+local loadingTrack: { [Player]: number } = {} -- player -> give-up time (os.clock)
+local heldKart: { [Player]: boolean } = {}
 local ghostSince: { [Model]: number } = {} -- since when a reset kart has been a ghost
 
 -- sessions
@@ -265,6 +270,12 @@ end
 
 local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3, anchored: boolean): Model?
 	removeKart(player)
+	-- still loading the circuit: anchored until it has (releaseLoading)
+	heldKart[player] = nil
+	if loadingTrack[player] and not anchored then
+		anchored = true
+		heldKart[player] = true
+	end
 	if not alive(player) then
 		return nil
 	end
@@ -498,10 +509,13 @@ local function switchTo(id: string): boolean
 		if sp and ch and ch.PrimaryPart then
 			local off = Vector3.new(math.random(-5, 5), 4, math.random(-5, 5))
 			ch:PivotTo(CFrame.new(sp.Position + off))
+			-- held there until their client has the new circuit (thousands of
+			-- parts to replicate): it says so with Request "TrackLoaded"
+			ch.PrimaryPart.Anchored = true
 		end
-		-- practice karts come back on their own once the new circuit has
-		-- reached everyone's client (thousands of parts to replicate)
-		spawnHold[p] = os.clock() + R.TrackLoadTime
+		loadingTrack[p] = os.clock() + R.TrackLoadTimeout
+		-- practice karts come back once it has
+		spawnHold[p] = loadingTrack[p]
 	end
 	if RaceManager.onTrackChanged then
 		RaceManager.onTrackChanged(c)
@@ -509,6 +523,27 @@ local function switchTo(id: string): boolean
 	fire(nil, "Track", { id = c.id, name = c.spec.Name, laps = LAPS })
 	print(string.format("[A1KartRacing] track is now %s", c.spec.Name))
 	return true
+end
+
+-- The player's client has the new circuit (or gave up waiting): let the
+-- character go, and the kart they were given meanwhile (not on the grid,
+-- where the lights let it go).
+local function releaseLoading(p: Player)
+	if not loadingTrack[p] then
+		return
+	end
+	loadingTrack[p] = nil
+	spawnHold[p] = os.clock() + 0.3
+	local ch = p.Character
+	if ch and ch.PrimaryPart then
+		ch.PrimaryPart.Anchored = false
+	end
+	local k = karts[p]
+	if heldKart[p] and k and k.PrimaryPart and state ~= "Grid" then
+		k.PrimaryPart.Anchored = false
+		KartFactory.handOver(k, p)
+	end
+	heldKart[p] = nil
 end
 
 local function publishTracks()
@@ -876,8 +911,13 @@ local function lightsOut()
 		if k and k.PrimaryPart then
 			r:addRacer(p, vec(k.PrimaryPart.Position), raceStart)
 			limits[p] = TrackLimits.newTracker()
-			k.PrimaryPart.Anchored = false
-			KartFactory.handOver(k, p)
+			if loadingTrack[p] then
+				-- still loading the circuit: goes when it has
+				heldKart[p] = true
+			else
+				k.PrimaryPart.Anchored = false
+				KartFactory.handOver(k, p)
+			end
 		end
 	end
 	setState("Racing", R.MaxRaceTime)
@@ -1098,6 +1138,11 @@ end
 local function tick()
 	local t = now()
 	updateGhosts(t)
+	for p, giveUp in loadingTrack do
+		if os.clock() > giveUp or not p.Parent then
+			releaseLoading(p)
+		end
+	end
 	local dt = math.clamp(t - lastTick, 0, 0.2)
 	lastTick = t
 	local attrDue = t - lastAttr > 0.2
@@ -1268,7 +1313,12 @@ end
 -- Requests from clients
 ----------------------------------------------------------------------------
 local function onRequest(player: Player, kind: unknown, arg: unknown)
-	if kind == "Vote" then
+	if kind == "TrackLoaded" then
+		-- the client has the circuit `arg` (the current one) on its side now
+		if arg == current.id then
+			releaseLoading(player)
+		end
+	elseif kind == "Vote" then
 		-- practice: change the track now; intermission: a vote for the next race
 		if type(arg) ~= "string" or not circuits[arg] then
 			return
@@ -1404,7 +1454,16 @@ end
 -- Players and characters
 ----------------------------------------------------------------------------
 local function onCharacter(player: Player, character: Model)
-	spawnHold[player] = os.clock() + 1.5
+	spawnHold[player] = math.max(os.clock() + 1.5, loadingTrack[player] or 0)
+	if loadingTrack[player] then
+		-- respawned while the new circuit is still loading: wait with the rest
+		task.defer(function()
+			local root = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
+			if root and loadingTrack[player] then
+				root.Anchored = true
+			end
+		end)
+	end
 	KartFactory.setCharacterParts(character, "Players", false)
 	character.DescendantAdded:Connect(function(d)
 		if d:IsA("BasePart") then
@@ -1469,6 +1528,8 @@ local function onLeave(player: Player)
 	numbers[player] = nil
 	lastReset[player] = nil
 	spawnHold[player] = nil
+	loadingTrack[player] = nil
+	heldKart[player] = nil
 	votes[player] = nil
 	lengthVotes[player] = nil
 	ready[player] = nil

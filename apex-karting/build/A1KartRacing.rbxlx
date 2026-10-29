@@ -717,7 +717,9 @@ Config.Race = {
 	ResetClear = 10.5,
 	ResetGhostTime = 1.0,
 	TrackChangeCooldown = 3, -- practice: seconds between track changes
-	TrackLoadTime = 3, -- seconds before practice karts return after a track change
+	-- after a track change everyone waits (anchored, under a loading screen)
+	-- until their client has the new circuit; at most this many seconds
+	TrackLoadTimeout = 20,
 	OffTrackAllowance = 60, -- studs beyond the road edge that still count as on course
 }
 
@@ -2404,7 +2406,7 @@ return SteerFilter
 -- (session length in seconds), Sectors (split points as lap fractions,
 -- default thirds),
 -- Bridge (name of the straight the sponsor bridge spans; default: the longest),
--- Sky ("Sunny" / "Cloudy" / "Sunset" / "Night"), PitStyle ("Wing" = sweeping
+-- Sky ("Sunny" / "Morning" / "Cloudy" / "Sunset" / "Night"), PitStyle ("Wing" = sweeping
 -- roof over the pits), CornerBoards (name boards at every named corner),
 -- Lake (a lake on the most open ground inside the fence), Trees (pines in the
 -- open ground), TrackLights (lamp posts along the track, for night races).
@@ -2639,22 +2641,23 @@ local Hillside = {
 	} :: { any },
 }
 
--- A night race (~0.88 km) under floodlights by the water: long diagonal
+-- A morning race (~0.88 km) by the water (it was a night race until the
+-- user found the night circuits tiring to look at): long diagonal
 -- legs out to a deep hairpin, a flat-out double kink on the way back (a
 -- good place to slipstream) and a twisty infield before the last corner.
 local Harbour = {
 	Id = "Harbour",
-	Name = "Harbour Night Circuit",
-	Blurb = "Night race under the lights",
+	Name = "Harbour Circuit",
+	Blurb = "Morning by the docks - long diagonals, deep hairpin",
 	Laps = 3,
 	Lengths = { 2, 3, 5 },
 	Qualifying = 150,
 	Spacing = 6,
 	Smoothing = 10,
 	BankSmoothing = 22,
-	Sky = "Night",
+	Sky = "Morning",
 	CornerBoards = true,
-	TrackLights = true,
+	TrackLights = true, -- lamp posts along the quays (lit only at night)
 	Segments = {
 		{ kind = "S", length = 305.7, width = 35, name = "Start straight" },
 		{ kind = "A", radius = 55, angle = 135, width = 33, name = "Crane" },
@@ -3002,13 +3005,13 @@ local Zandvoort = {
 	} :: { any },
 }
 
--- Yas Marina (Abu Dhabi GP, 2021 layout) at night under lamp posts: the real
+-- Yas Marina (Abu Dhabi GP, 2021 layout) at sunset (the race starts at dusk): the real
 -- centre line at 0.8 studs per metre, nearly flat like the real one, the two
 -- long straights shortened, the long Turn 9 left gently banked.
 local YasMarina = {
 	Id = "YasMarina",
 	Name = "Yas Marina",
-	Blurb = "Abu Dhabi GP - night race, hairpin and hotel section",
+	Blurb = "Abu Dhabi GP - sunset race, hairpin and hotel section",
 	Laps = 3,
 	Lengths = { 2, 3, 5 },
 	Qualifying = 150,
@@ -3016,7 +3019,7 @@ local YasMarina = {
 	Smoothing = 10,
 	BankSmoothing = 40,
 	CornerBoards = true,
-	Sky = "Night",
+	Sky = "Sunset",
 	TrackLights = true,
 	Segments = {
 		{ kind = "S", length = 120, y = 0, width = 30 },
@@ -6395,6 +6398,11 @@ local karts: { [Player]: Model } = {}
 local numbers: { [Player]: number } = {}
 local lastReset: { [Player]: number } = {}
 local spawnHold: { [Player]: number } = {} -- onCharacter is about to give a kart
+-- after a track change, until the player's client has the new circuit (or
+-- the timeout): their character, and any kart they get, stays anchored, or
+-- it fell through ground that had not arrived yet
+local loadingTrack: { [Player]: number } = {} -- player -> give-up time (os.clock)
+local heldKart: { [Player]: boolean } = {}
 local ghostSince: { [Model]: number } = {} -- since when a reset kart has been a ghost
 
 -- sessions
@@ -6553,6 +6561,12 @@ end
 
 local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3, anchored: boolean): Model?
 	removeKart(player)
+	-- still loading the circuit: anchored until it has (releaseLoading)
+	heldKart[player] = nil
+	if loadingTrack[player] and not anchored then
+		anchored = true
+		heldKart[player] = true
+	end
 	if not alive(player) then
 		return nil
 	end
@@ -6786,10 +6800,13 @@ local function switchTo(id: string): boolean
 		if sp and ch and ch.PrimaryPart then
 			local off = Vector3.new(math.random(-5, 5), 4, math.random(-5, 5))
 			ch:PivotTo(CFrame.new(sp.Position + off))
+			-- held there until their client has the new circuit (thousands of
+			-- parts to replicate): it says so with Request "TrackLoaded"
+			ch.PrimaryPart.Anchored = true
 		end
-		-- practice karts come back on their own once the new circuit has
-		-- reached everyone's client (thousands of parts to replicate)
-		spawnHold[p] = os.clock() + R.TrackLoadTime
+		loadingTrack[p] = os.clock() + R.TrackLoadTimeout
+		-- practice karts come back once it has
+		spawnHold[p] = loadingTrack[p]
 	end
 	if RaceManager.onTrackChanged then
 		RaceManager.onTrackChanged(c)
@@ -6797,6 +6814,27 @@ local function switchTo(id: string): boolean
 	fire(nil, "Track", { id = c.id, name = c.spec.Name, laps = LAPS })
 	print(string.format("[A1KartRacing] track is now %s", c.spec.Name))
 	return true
+end
+
+-- The player's client has the new circuit (or gave up waiting): let the
+-- character go, and the kart they were given meanwhile (not on the grid,
+-- where the lights let it go).
+local function releaseLoading(p: Player)
+	if not loadingTrack[p] then
+		return
+	end
+	loadingTrack[p] = nil
+	spawnHold[p] = os.clock() + 0.3
+	local ch = p.Character
+	if ch and ch.PrimaryPart then
+		ch.PrimaryPart.Anchored = false
+	end
+	local k = karts[p]
+	if heldKart[p] and k and k.PrimaryPart and state ~= "Grid" then
+		k.PrimaryPart.Anchored = false
+		KartFactory.handOver(k, p)
+	end
+	heldKart[p] = nil
 end
 
 local function publishTracks()
@@ -7164,8 +7202,13 @@ local function lightsOut()
 		if k and k.PrimaryPart then
 			r:addRacer(p, vec(k.PrimaryPart.Position), raceStart)
 			limits[p] = TrackLimits.newTracker()
-			k.PrimaryPart.Anchored = false
-			KartFactory.handOver(k, p)
+			if loadingTrack[p] then
+				-- still loading the circuit: goes when it has
+				heldKart[p] = true
+			else
+				k.PrimaryPart.Anchored = false
+				KartFactory.handOver(k, p)
+			end
 		end
 	end
 	setState("Racing", R.MaxRaceTime)
@@ -7386,6 +7429,11 @@ end
 local function tick()
 	local t = now()
 	updateGhosts(t)
+	for p, giveUp in loadingTrack do
+		if os.clock() > giveUp or not p.Parent then
+			releaseLoading(p)
+		end
+	end
 	local dt = math.clamp(t - lastTick, 0, 0.2)
 	lastTick = t
 	local attrDue = t - lastAttr > 0.2
@@ -7556,7 +7604,12 @@ end
 -- Requests from clients
 ----------------------------------------------------------------------------
 local function onRequest(player: Player, kind: unknown, arg: unknown)
-	if kind == "Vote" then
+	if kind == "TrackLoaded" then
+		-- the client has the circuit `arg` (the current one) on its side now
+		if arg == current.id then
+			releaseLoading(player)
+		end
+	elseif kind == "Vote" then
 		-- practice: change the track now; intermission: a vote for the next race
 		if type(arg) ~= "string" or not circuits[arg] then
 			return
@@ -7692,7 +7745,16 @@ end
 -- Players and characters
 ----------------------------------------------------------------------------
 local function onCharacter(player: Player, character: Model)
-	spawnHold[player] = os.clock() + 1.5
+	spawnHold[player] = math.max(os.clock() + 1.5, loadingTrack[player] or 0)
+	if loadingTrack[player] then
+		-- respawned while the new circuit is still loading: wait with the rest
+		task.defer(function()
+			local root = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
+			if root and loadingTrack[player] then
+				root.Anchored = true
+			end
+		end)
+	end
 	KartFactory.setCharacterParts(character, "Players", false)
 	character.DescendantAdded:Connect(function(d)
 		if d:IsA("BasePart") then
@@ -7757,6 +7819,8 @@ local function onLeave(player: Player)
 	numbers[player] = nil
 	lastReset[player] = nil
 	spawnHold[player] = nil
+	loadingTrack[player] = nil
+	heldKart[player] = nil
 	votes[player] = nil
 	lengthVotes[player] = nil
 	ready[player] = nil
@@ -8093,9 +8157,10 @@ local function faceTowards(cf: CFrame, target: Vector3): Enum.NormalId
 	return if cf.RightVector:Dot(target - cf.Position) > 0 then Enum.NormalId.Right else Enum.NormalId.Left
 end
 
--- Weather per circuit (TrackData `Sky`): "Sunny" (default), "Cloudy",
--- "Sunset" (low warm sun) or "Night" (dark sky; the circuit's own lamps
--- light the track, see Scenery.trackLights).
+-- Weather per circuit (TrackData `Sky`): "Sunny" (default), "Morning",
+-- "Cloudy", "Sunset" (low warm sun) or "Night" (dark sky; the circuit's own
+-- lamps light the track, see Scenery.trackLights). No circuit races at night
+-- any more: the user found the night circuits tiring to look at.
 type Sky = { clock: number, brightness: number, exposure: number, density: number, haze: number, glare: number, color: Color3, decay: Color3, saturation: number, contrast: number, clouds: number, ambient: Color3, outdoor: Color3, tint: Color3?, lift: number? }
 local DAY_AMBIENT = Color3.new(0.25, 0.25, 0.28)
 local DAY_OUTDOOR = Color3.new(0.55, 0.55, 0.6)
@@ -8107,6 +8172,14 @@ local SKIES: { [string]: Sky } = {
 		saturation = 0.1, contrast = 0.06, clouds = 0,
 		ambient = DAY_AMBIENT, outdoor = DAY_OUTDOOR,
 	},
+	-- a clear morning: the sun still low in the east, cool bright light
+	Morning = {
+		clock = 9.2, brightness = 2.7, exposure = 0.15,
+		density = 0.24, haze = 0.8, glare = 0.2,
+		color = Color3.fromRGB(214, 226, 240), decay = Color3.fromRGB(150, 168, 196),
+		saturation = 0.08, contrast = 0.05, clouds = 0.15,
+		ambient = Color3.new(0.28, 0.29, 0.32), outdoor = Color3.new(0.6, 0.62, 0.68),
+	},
 	-- a bright English summer afternoon under broken cloud (the user found
 	-- the darker first version hard to read on a phone)
 	Cloudy = {
@@ -8116,13 +8189,14 @@ local SKIES: { [string]: Sky } = {
 		saturation = 0, contrast = 0.05, clouds = 0.5,
 		ambient = Color3.new(0.3, 0.3, 0.33), outdoor = Color3.new(0.62, 0.62, 0.67),
 	},
-	-- late afternoon: low golden sun and long shadows through the trees
+	-- early evening: low golden sun and long shadows, with enough fill light
+	-- to read the road on a phone (lighter than the first version)
 	Sunset = {
-		clock = 17.7, brightness = 2.2, exposure = 0.15,
-		density = 0.3, haze = 1.6, glare = 0.4,
-		color = Color3.fromRGB(240, 196, 150), decay = Color3.fromRGB(180, 120, 90),
-		saturation = 0.15, contrast = 0.08, clouds = 0.25,
-		ambient = Color3.fromRGB(70, 58, 52), outdoor = Color3.fromRGB(150, 120, 100),
+		clock = 17.4, brightness = 2.4, exposure = 0.25,
+		density = 0.28, haze = 1.2, glare = 0.35,
+		color = Color3.fromRGB(240, 200, 158), decay = Color3.fromRGB(180, 128, 100),
+		saturation = 0.12, contrast = 0.06, clouds = 0.25,
+		ambient = Color3.fromRGB(96, 86, 80), outdoor = Color3.fromRGB(172, 150, 132),
 		tint = Color3.fromRGB(255, 240, 225),
 	},
 	-- after dark, but a floodlit circuit: a dark blue sky and a road that is
@@ -10591,6 +10665,7 @@ local KartVisuals = require(script:WaitForChild("KartVisuals"))
 local ChaseCamera = require(script:WaitForChild("ChaseCamera"))
 local Hud = require(script:WaitForChild("Hud"))
 local Menu = require(script:WaitForChild("Menu"))
+local TrackLoader = require(script:WaitForChild("TrackLoader"))
 
 Settings.init(remotes)
 Sfx.init()
@@ -10601,6 +10676,7 @@ ChaseCamera.init()
 Hud.init(remotes)
 SettingsMenu.init()
 Menu.init(remotes)
+TrackLoader.init(remotes)
 ]]></string>
         </Properties>
         <Item class="ModuleScript" referent="32">
@@ -15398,6 +15474,114 @@ return Sfx
         </Item>
         <Item class="ModuleScript" referent="41">
           <Properties>
+            <string name="Name">TrackLoader</string>
+            <string name="Source"><![CDATA[--!strict
+-- Track changes. The server swaps whole circuits (thousands of parts to
+-- replicate) and holds everyone, anchored, in the new paddock: a character
+-- let go before its client had the ground fell through it. This puts the
+-- loading screen up until the new circuit has reached this client (a ray
+-- finds the floor under the character and the road on the grid), then tells
+-- the server (Request "TrackLoaded"), which lets the character and kart go.
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local TrackLoader = {}
+
+local MIN_TIME = 0.8 -- seconds the screen stays up at least (no flash)
+local player = Players.LocalPlayer
+local requestRemote: RemoteEvent
+local token = 0
+
+local LoadingGui: any = nil
+local function loadingModule(): any
+	if not LoadingGui then
+		local ok, m = pcall(function()
+			local folder = ReplicatedFirst:WaitForChild("Loading", 5)
+			local mod: any = (folder :: Instance):WaitForChild("LoadingGui", 5)
+			return (require :: any)(mod)
+		end)
+		if ok then
+			LoadingGui = m
+		end
+	end
+	return LoadingGui
+end
+
+-- Has circuit `id` arrived: the floor under the character and the road just
+-- behind the start line (every circuit starts at the origin heading +X)?
+local function arrived(id: string): boolean
+	local circuit = workspace:FindFirstChild("Circuit")
+	if not circuit or circuit:GetAttribute("TrackId") ~= id then
+		return false
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { circuit }
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if root and not workspace:Raycast(root.Position + Vector3.new(0, 2, 0), Vector3.new(0, -80, 0), params) then
+		return false
+	end
+	return workspace:Raycast(Vector3.new(-40, 120, 0), Vector3.new(0, -240, 0), params) ~= nil
+end
+
+local function begin(id: string, name: string)
+	token += 1
+	local my = token
+	local LG = loadingModule()
+	local gui: ScreenGui? = nil
+	if LG then
+		local g = LG.create("Loading  -  " .. name) :: ScreenGui
+		LG.fit(g)
+		LG.set(g, 0.1)
+		g.Parent = player:WaitForChild("PlayerGui")
+		gui = g
+	end
+	local t0 = os.clock()
+	local conn: RBXScriptConnection
+	conn = RunService.Heartbeat:Connect(function()
+		local elapsed = os.clock() - t0
+		local done = my ~= token
+		if not done then
+			local ok = arrived(id)
+			if gui and LG then
+				LG.set(gui, if ok then 1 else math.min(0.9, 0.1 + elapsed / 8))
+			end
+			if (ok and elapsed >= MIN_TIME) or elapsed > Config.Race.TrackLoadTimeout then
+				requestRemote:FireServer("TrackLoaded", id)
+				done = true
+			end
+		end
+		if done then
+			conn:Disconnect()
+			if gui then
+				gui:Destroy()
+			end
+		end
+	end)
+end
+
+function TrackLoader.init(remotes: Folder)
+	requestRemote = remotes:WaitForChild("Request") :: RemoteEvent
+	local raceEvent = remotes:WaitForChild("RaceEvent") :: RemoteEvent
+	raceEvent.OnClientEvent:Connect(function(kind: string, data: any)
+		if kind == "Track" and type(data) == "table" and type(data.id) == "string" then
+			begin(data.id, tostring(data.name or data.id))
+		end
+	end)
+end
+
+return TrackLoader
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="42">
+          <Properties>
             <string name="Name">TrackOutline</string>
             <string name="Source"><![CDATA[--!strict
 -- Circuit outlines drawn with thin frames (the minimap, the track cards in
@@ -15485,7 +15669,7 @@ return TrackOutline
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="42">
+  <Item class="Workspace" referent="43">
     <Properties>
       <string name="Name">Workspace</string>
       <float name="Gravity">196.2</float>

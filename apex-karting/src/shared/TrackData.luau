@@ -15,7 +15,7 @@
 -- (session length in seconds), Sectors (split points as lap fractions,
 -- default thirds),
 -- Bridge (name of the straight the sponsor bridge spans; default: the longest),
--- Sky ("Sunny" / "Cloudy" / "Sunset" / "Night"), PitStyle ("Wing" = sweeping
+-- Sky ("Sunny" / "Morning" / "Cloudy" / "Sunset" / "Night"), PitStyle ("Wing" = sweeping
 -- roof over the pits), CornerBoards (name boards at every named corner),
 -- Lake (a lake on the most open ground inside the fence), Trees (pines in the
 -- open ground), TrackLights (lamp posts along the track, for night races).
@@ -250,22 +250,23 @@ local Hillside = {
 	} :: { any },
 }
 
--- A night race (~0.88 km) under floodlights by the water: long diagonal
+-- A morning race (~0.88 km) by the water (it was a night race until the
+-- user found the night circuits tiring to look at): long diagonal
 -- legs out to a deep hairpin, a flat-out double kink on the way back (a
 -- good place to slipstream) and a twisty infield before the last corner.
 local Harbour = {
 	Id = "Harbour",
-	Name = "Harbour Night Circuit",
-	Blurb = "Night race under the lights",
+	Name = "Harbour Circuit",
+	Blurb = "Morning by the docks - long diagonals, deep hairpin",
 	Laps = 3,
 	Lengths = { 2, 3, 5 },
 	Qualifying = 150,
 	Spacing = 6,
 	Smoothing = 10,
 	BankSmoothing = 22,
-	Sky = "Night",
+	Sky = "Morning",
 	CornerBoards = true,
-	TrackLights = true,
+	TrackLights = true, -- lamp posts along the quays (lit only at night)
 	Segments = {
 		{ kind = "S", length = 305.7, width = 35, name = "Start straight" },
 		{ kind = "A", radius = 55, angle = 135, width = 33, name = "Crane" },
@@ -613,13 +614,13 @@ local Zandvoort = {
 	} :: { any },
 }
 
--- Yas Marina (Abu Dhabi GP, 2021 layout) at night under lamp posts: the real
+-- Yas Marina (Abu Dhabi GP, 2021 layout) at sunset (the race starts at dusk): the real
 -- centre line at 0.8 studs per metre, nearly flat like the real one, the two
 -- long straights shortened, the long Turn 9 left gently banked.
 local YasMarina = {
 	Id = "YasMarina",
 	Name = "Yas Marina",
-	Blurb = "Abu Dhabi GP - night race, hairpin and hotel section",
+	Blurb = "Abu Dhabi GP - sunset race, hairpin and hotel section",
 	Laps = 3,
 	Lengths = { 2, 3, 5 },
 	Qualifying = 150,
@@ -627,7 +628,7 @@ local YasMarina = {
 	Smoothing = 10,
 	BankSmoothing = 40,
 	CornerBoards = true,
-	Sky = "Night",
+	Sky = "Sunset",
 	TrackLights = true,
 	Segments = {
 		{ kind = "S", length = 120, y = 0, width = 30 },
