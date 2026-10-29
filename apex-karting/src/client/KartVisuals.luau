@@ -12,6 +12,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local KartPhysics = require(Shared:WaitForChild("KartPhysics"))
+local EngineAudio = require(Shared:WaitForChild("EngineAudio"))
 local KartController = require(script.Parent:WaitForChild("KartController"))
 local Input = require(script.Parent:WaitForChild("Input"))
 local Sfx = require(script.Parent:WaitForChild("Sfx"))
@@ -37,6 +38,10 @@ type Visual = {
 	ghost: boolean?, -- drawn see-through (KartVisuals ghosts)
 	steer: number,
 	engine: Sound?,
+	layers: { Sound }?, -- the layered engine (EngineAudio), when its sounds are uploaded
+	layerSpec: { EngineAudio.Layer }?,
+	overrun: Sound?,
+	load: number, -- throttle as the engine sound follows it (0..1)
 	skid: Sound?,
 	offroad: Sound?,
 	kerb: Sound?,
@@ -71,6 +76,21 @@ local function loopSound(parent: Instance, name: string, id: string?, volume: nu
 	snd.Parent = parent
 	snd:Play()
 	return snd
+end
+
+-- the layered engine's loops (EngineAudio), all running, mixed every frame
+local function engineLayers(chassis: BasePart, spec: { EngineAudio.Layer }?): { Sound }?
+	if not spec then
+		return nil
+	end
+	local list: { Sound } = {}
+	for i, layer in spec do
+		local snd = loopSound(chassis, "Engine" .. layer.rpm, layer.id, 0, "Engine")
+		if snd then
+			list[i] = snd
+		end
+	end
+	return list
 end
 
 -- what a wheel on this part sounds like: "kerb", or how loud the off-road
@@ -284,6 +304,7 @@ local function build(model: Model)
 			tag.Enabled = false
 		end
 	end
+	local layerSpec = EngineAudio.layers(AUDIO)
 	visuals[model] = {
 		model = model,
 		chassis = chassis,
@@ -294,7 +315,11 @@ local function build(model: Model)
 		display = readout,
 		displayAt = 0,
 		steer = 0,
-		engine = loopSound(chassis, "EngineSound", AUDIO.EngineSoundId, AUDIO.EngineVolume, "Engine"),
+		engine = if layerSpec then nil else loopSound(chassis, "EngineSound", AUDIO.EngineSoundId, AUDIO.EngineVolume, "Engine"),
+		layers = engineLayers(chassis, layerSpec),
+		layerSpec = layerSpec,
+		overrun = if layerSpec then loopSound(chassis, "EngineOff", AUDIO.EngineOffSoundId, 0, "Engine") else nil,
+		load = 0,
 		skid = loopSound(chassis, "SkidSound", AUDIO.SkidSoundId, 0, "Effects"),
 		offroad = loopSound(chassis, "OffroadSound", AUDIO.OffroadSoundId, 0, "Effects"),
 		kerb = loopSound(chassis, "KerbSound", AUDIO.KerbSoundId, 0, "Effects"),
@@ -307,6 +332,14 @@ local function unbuild(model: Model)
 	if v then
 		if v.engine then
 			v.engine:Destroy()
+		end
+		if v.layers then
+			for _, snd in v.layers do
+				snd:Destroy()
+			end
+		end
+		if v.overrun then
+			v.overrun:Destroy()
 		end
 		for _, snd in { v.skid, v.offroad, v.kerb } do
 			if snd then
@@ -394,6 +427,30 @@ local function updateGhosts()
 		end
 	end
 	ghostOn = all
+end
+
+-- engine revs: a rental kart's one gear and centrifugal clutch. On the
+-- throttle the clutch slips at EngineRpmClutch until the road speed takes the
+-- revs higher; off it the revs stay with the road until the clutch lets go
+-- (EngineRpmRelease), then it idles. A little higher when the rear wheels
+-- spin. Other karts: on the throttle whenever they move.
+local function engineRpm(speed: number, throttle: number, tele: KartPhysics.Result?): number
+	local roadRpm = AUDIO.EngineRpmMax * math.clamp(speed / cfg.TopSpeed, 0, 1.1)
+	local rpm: number
+	if throttle > 0.05 then
+		local slip = AUDIO.EngineRpmIdle + (AUDIO.EngineRpmClutch - AUDIO.EngineRpmIdle) * math.min(throttle * 1.5, 1)
+		rpm = math.max(roadRpm, slip)
+	else
+		rpm = if roadRpm > AUDIO.EngineRpmRelease then roadRpm else AUDIO.EngineRpmIdle
+	end
+	if tele then
+		for _, wt in tele.wheels do
+			if wt.spinning then
+				return rpm + 500
+			end
+		end
+	end
+	return rpm
 end
 
 local function update(dt: number)
@@ -499,33 +556,28 @@ local function update(dt: number)
 			end
 		end
 
-		-- engine revs: a rental kart's one gear and centrifugal clutch. On the
-		-- throttle the clutch slips at EngineRpmClutch until the road speed
-		-- takes the revs higher; off it the revs stay with the road until the
-		-- clutch lets go (EngineRpmRelease), then it idles. A little higher when
-		-- the rear wheels spin. Other karts: on the throttle whenever they move.
+		-- engine sound (engineRpm; the layered engine when it is uploaded)
 		local speed = math.abs(fwdSpeed)
+		local throttle = if ownTele then Input.get().throttle elseif speed > 2 then 1 else 0
 		if v.engine then
-			local roadRpm = AUDIO.EngineRpmMax * math.clamp(speed / cfg.TopSpeed, 0, 1.1)
-			local throttle = if ownTele then Input.get().throttle elseif speed > 2 then 1 else 0
-			local rpm: number
-			if throttle > 0.05 then
-				local slip = AUDIO.EngineRpmIdle + (AUDIO.EngineRpmClutch - AUDIO.EngineRpmIdle) * math.min(throttle * 1.5, 1)
-				rpm = math.max(roadRpm, slip)
-			else
-				rpm = if roadRpm > AUDIO.EngineRpmRelease then roadRpm else AUDIO.EngineRpmIdle
-			end
-			if ownTele then
-				for _, wt in ownTele.wheels do
-					if wt.spinning then
-						rpm += 500
-						break
-					end
-				end
-			end
-			v.rpm += (rpm - v.rpm) * math.min(dt * 8, 1)
+			v.rpm += (engineRpm(speed, throttle, ownTele) - v.rpm) * math.min(dt * 8, 1)
 			v.engine.PlaybackSpeed = v.rpm / AUDIO.EngineRpmLoop
 			v.engine.Volume = AUDIO.EngineVolume * (if ownTele then 0.55 + 0.45 * throttle else 0.8)
+		end
+		local layerSpec = v.layerSpec
+		if v.layers and layerSpec then
+			v.rpm += (engineRpm(speed, throttle, ownTele) - v.rpm) * math.min(dt * 8, 1)
+			v.load += (throttle - v.load) * math.min(dt * 12, 1)
+			local m = EngineAudio.mix(layerSpec, AUDIO.EngineOffRpm, v.rpm, v.load)
+			local gain = AUDIO.EngineLayerVolume * (if ownTele then 1 else 0.8)
+			for i, snd in v.layers do
+				snd.Volume = gain * m.volumes[i]
+				snd.PlaybackSpeed = m.speeds[i]
+			end
+			if v.overrun then
+				v.overrun.Volume = gain * m.offVolume
+				v.overrun.PlaybackSpeed = m.offSpeed
+			end
 		end
 		-- off the road: a rumble and gravel crunch that grows with speed
 		if v.offroad then

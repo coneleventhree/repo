@@ -795,6 +795,18 @@ Config.Audio = {
 	EngineRpmClutch = 2600,
 	EngineRpmRelease = 2000,
 	EngineRpmMax = 4200,
+	-- the layered engine (shared/EngineAudio, sounds/make_sounds.py
+	-- engine_layers): engine_1700 (idle), engine_2800, engine_4000 (full
+	-- throttle) and engine_off (closed throttle) at the rpm they were made
+	-- at. While any id is empty the single EngineSoundId loop plays instead.
+	EngineLayers = {
+		{ id = "", rpm = 1700 }, -- sounds/engine_1700.ogg
+		{ id = "", rpm = 2800 }, -- sounds/engine_2800.ogg
+		{ id = "", rpm = 4000 }, -- sounds/engine_4000.ogg
+	},
+	EngineOffSoundId = "", -- sounds/engine_off.ogg
+	EngineOffRpm = 3400,
+	EngineLayerVolume = 2.1, -- the pulsy layers sit ~6.5 dB under the old loop at the same volume (mix_levels)
 	SkidSoundId = "rbxassetid://117100105483453",
 	SkidVolume = 0.31,
 	OffroadSoundId = "rbxassetid://83887645728236",
@@ -879,6 +891,98 @@ return Config
         </Properties>
       </Item>
       <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">EngineAudio</string>
+          <string name="Source"><![CDATA[--!strict
+-- The engine as layered loops (pure Luau: the client, the tests and
+-- sounds/engine_preview.py all mix it the same way).
+--
+-- Each loop is the engine at one steady rpm and load (sounds/make_sounds.py
+-- engine_layers). A single loop pitched across the whole rev range moved the
+-- pipe and muffler resonances with it (a toy-like sound): here each loop is
+-- pitched only towards its neighbours, and the two nearest are cross-faded
+-- (equal power). On the throttle only the full-load loops play (layers 2..n);
+-- with it closed, the idle loop (layer 1) at low revs and the overrun loop
+-- (weak, uneven firings, pops) above them; the throttle fades between the two.
+
+local EngineAudio = {}
+
+export type Layer = { id: string, rpm: number }
+export type Mix = { volumes: { number }, speeds: { number }, offVolume: number, offSpeed: number }
+
+local OVERRUN_FADE = 800 -- rpm over which closed-throttle idle turns into overrun
+
+-- equal-power weights for `rpm` between points `rpms` (sorted)
+local function weights(rpms: { number }, rpm: number): { number }
+	local n = #rpms
+	local w = table.create(n, 0)
+	if rpm <= rpms[1] then
+		w[1] = 1
+	elseif rpm >= rpms[n] then
+		w[n] = 1
+	else
+		for i = 1, n - 1 do
+			local a, b = rpms[i], rpms[i + 1]
+			if rpm >= a and rpm < b then
+				local f = (rpm - a) / (b - a)
+				w[i] = math.cos(f * math.pi / 2)
+				w[i + 1] = math.sin(f * math.pi / 2)
+				break
+			end
+		end
+	end
+	return w
+end
+
+-- volumes (0..1) and playback speeds for `layers` (sorted by rpm: the idle,
+-- then the full-load loops) and the overrun loop recorded at `offRpm`, at
+-- engine speed `rpm` with the throttle at `load` (0..1)
+function EngineAudio.mix(layers: { Layer }, offRpm: number, rpm: number, load: number): Mix
+	local n = #layers
+	local l = math.clamp(load, 0, 1)
+	local full: { number } = {}
+	for i = 2, n do
+		table.insert(full, layers[i].rpm)
+	end
+	local wf = weights(full, rpm)
+	local closed = weights({ layers[1].rpm, layers[1].rpm + OVERRUN_FADE }, rpm)
+	local volumes = table.create(n, 0)
+	local speeds = table.create(n, 1)
+	for i = 1, n do
+		speeds[i] = math.clamp(rpm / layers[i].rpm, 0.5, 2)
+	end
+	volumes[1] = closed[1] * (1 - l)
+	for i = 2, n do
+		volumes[i] = wf[i - 1] * l
+	end
+	return {
+		volumes = volumes,
+		speeds = speeds,
+		offVolume = closed[2] * (1 - l),
+		offSpeed = math.clamp(rpm / offRpm, 0.5, 2),
+	}
+end
+
+-- the layers to use, or nil while any of their sounds is still to be
+-- uploaded (the game then plays the single EngineSoundId loop)
+function EngineAudio.layers(audio: any): { Layer }?
+	local list = audio.EngineLayers
+	if type(list) ~= "table" or #list < 2 or (audio.EngineOffSoundId or "") == "" then
+		return nil
+	end
+	for _, l in list do
+		if (l.id or "") == "" then
+			return nil
+		end
+	end
+	return list
+end
+
+return EngineAudio
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="9">
         <Properties>
           <string name="Name">KartPhysics</string>
           <string name="Source"><![CDATA[--!strict
@@ -1952,7 +2056,7 @@ return KartPhysics
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="9">
+      <Item class="ModuleScript" referent="10">
         <Properties>
           <string name="Name">RaceProgress</string>
           <string name="Source"><![CDATA[--!strict
@@ -2301,7 +2405,7 @@ return RaceProgress
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="10">
+      <Item class="ModuleScript" referent="11">
         <Properties>
           <string name="Name">SteerFilter</string>
           <string name="Source"><![CDATA[--!strict
@@ -2386,7 +2490,7 @@ return SteerFilter
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="11">
+      <Item class="ModuleScript" referent="12">
         <Properties>
           <string name="Name">TrackData</string>
           <string name="Source"><![CDATA[--!strict
@@ -3120,7 +3224,7 @@ return TrackData
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="12">
+      <Item class="ModuleScript" referent="13">
         <Properties>
           <string name="Name">TrackLayout</string>
           <string name="Source"><![CDATA[--!strict
@@ -4631,7 +4735,7 @@ return TrackLayout
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="13">
+      <Item class="ModuleScript" referent="14">
         <Properties>
           <string name="Name">TrackLimits</string>
           <string name="Source"><![CDATA[--!strict
@@ -4744,7 +4848,7 @@ return TrackLimits
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="14">
+      <Item class="ModuleScript" referent="15">
         <Properties>
           <string name="Name">TrackMath</string>
           <string name="Source"><![CDATA[--!strict
@@ -5087,11 +5191,11 @@ return TrackMath
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="15">
+  <Item class="ServerScriptService" referent="16">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="16">
+    <Item class="Script" referent="17">
       <Properties>
         <string name="Name">Server</string>
         <token name="RunContext">0</token>
@@ -5254,7 +5358,7 @@ task.defer(function()
 end)
 ]]></string>
       </Properties>
-      <Item class="ModuleScript" referent="17">
+      <Item class="ModuleScript" referent="18">
         <Properties>
           <string name="Name">Build</string>
           <string name="Source"><![CDATA[--!strict
@@ -5368,7 +5472,7 @@ return Build
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="18">
+      <Item class="ModuleScript" referent="19">
         <Properties>
           <string name="Name">KartFactory</string>
           <string name="Source"><![CDATA[--!strict
@@ -5924,7 +6028,7 @@ return KartFactory
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="19">
+      <Item class="ModuleScript" referent="20">
         <Properties>
           <string name="Name">Lobby</string>
           <string name="Source"><![CDATA[--!strict
@@ -6077,7 +6181,7 @@ return Lobby
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="20">
+      <Item class="ModuleScript" referent="21">
         <Properties>
           <string name="Name">Matchmaker</string>
           <string name="Source"><![CDATA[--!strict
@@ -6286,7 +6390,7 @@ return Matchmaker
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="21">
+      <Item class="ModuleScript" referent="22">
         <Properties>
           <string name="Name">RaceManager</string>
           <string name="Source"><![CDATA[--!strict
@@ -7944,7 +8048,7 @@ return RaceManager
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="22">
+      <Item class="ModuleScript" referent="23">
         <Properties>
           <string name="Name">Rooms</string>
           <string name="Source"><![CDATA[--!strict
@@ -8082,7 +8186,7 @@ return Rooms
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="23">
+      <Item class="ModuleScript" referent="24">
         <Properties>
           <string name="Name">Scenery</string>
           <string name="Source"><![CDATA[--!strict
@@ -9294,7 +9398,7 @@ return Scenery
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="24">
+      <Item class="ModuleScript" referent="25">
         <Properties>
           <string name="Name">Session</string>
           <string name="Source"><![CDATA[--!strict
@@ -9569,7 +9673,7 @@ return Session
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="25">
+      <Item class="ModuleScript" referent="26">
         <Properties>
           <string name="Name">SharedStore</string>
           <string name="Source"><![CDATA[--!strict
@@ -9741,7 +9845,7 @@ return SharedStore
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="26">
+      <Item class="ModuleScript" referent="27">
         <Properties>
           <string name="Name">Stats</string>
           <string name="Source"><![CDATA[--!strict
@@ -10094,7 +10198,7 @@ return Stats
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="27">
+      <Item class="ModuleScript" referent="28">
         <Properties>
           <string name="Name">TrackBuilder</string>
           <string name="Source"><![CDATA[--!strict
@@ -10625,24 +10729,24 @@ return TrackBuilder
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="28">
+  <Item class="SoundService" referent="29">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="29">
+  <Item class="StarterPlayer" referent="30">
     <Properties>
       <string name="Name">StarterPlayer</string>
       <float name="CameraMaxZoomDistance">120</float>
       <float name="CharacterJumpHeight">7.2</float>
       <bool name="CharacterUseJumpPower">false</bool>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="30">
+    <Item class="StarterPlayerScripts" referent="31">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="31">
+      <Item class="LocalScript" referent="32">
         <Properties>
           <string name="Name">Client</string>
           <string name="Source"><![CDATA[--!strict
@@ -10679,7 +10783,7 @@ Menu.init(remotes)
 TrackLoader.init(remotes)
 ]]></string>
         </Properties>
-        <Item class="ModuleScript" referent="32">
+        <Item class="ModuleScript" referent="33">
           <Properties>
             <string name="Name">ChaseCamera</string>
             <string name="Source"><![CDATA[--!strict
@@ -11264,7 +11368,7 @@ return ChaseCamera
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="33">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">Hud</string>
             <string name="Source"><![CDATA[--!strict
@@ -12684,7 +12788,7 @@ return Hud
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="34">
+        <Item class="ModuleScript" referent="35">
           <Properties>
             <string name="Name">Input</string>
             <string name="Source"><![CDATA[--!strict
@@ -12975,7 +13079,7 @@ return Input
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="35">
+        <Item class="ModuleScript" referent="36">
           <Properties>
             <string name="Name">KartController</string>
             <string name="Source"><![CDATA[--!strict
@@ -13358,7 +13462,7 @@ return KartController
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="36">
+        <Item class="ModuleScript" referent="37">
           <Properties>
             <string name="Name">KartVisuals</string>
             <string name="Source"><![CDATA[--!strict
@@ -13375,6 +13479,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local KartPhysics = require(Shared:WaitForChild("KartPhysics"))
+local EngineAudio = require(Shared:WaitForChild("EngineAudio"))
 local KartController = require(script.Parent:WaitForChild("KartController"))
 local Input = require(script.Parent:WaitForChild("Input"))
 local Sfx = require(script.Parent:WaitForChild("Sfx"))
@@ -13400,6 +13505,10 @@ type Visual = {
 	ghost: boolean?, -- drawn see-through (KartVisuals ghosts)
 	steer: number,
 	engine: Sound?,
+	layers: { Sound }?, -- the layered engine (EngineAudio), when its sounds are uploaded
+	layerSpec: { EngineAudio.Layer }?,
+	overrun: Sound?,
+	load: number, -- throttle as the engine sound follows it (0..1)
 	skid: Sound?,
 	offroad: Sound?,
 	kerb: Sound?,
@@ -13434,6 +13543,21 @@ local function loopSound(parent: Instance, name: string, id: string?, volume: nu
 	snd.Parent = parent
 	snd:Play()
 	return snd
+end
+
+-- the layered engine's loops (EngineAudio), all running, mixed every frame
+local function engineLayers(chassis: BasePart, spec: { EngineAudio.Layer }?): { Sound }?
+	if not spec then
+		return nil
+	end
+	local list: { Sound } = {}
+	for i, layer in spec do
+		local snd = loopSound(chassis, "Engine" .. layer.rpm, layer.id, 0, "Engine")
+		if snd then
+			list[i] = snd
+		end
+	end
+	return list
 end
 
 -- what a wheel on this part sounds like: "kerb", or how loud the off-road
@@ -13647,6 +13771,7 @@ local function build(model: Model)
 			tag.Enabled = false
 		end
 	end
+	local layerSpec = EngineAudio.layers(AUDIO)
 	visuals[model] = {
 		model = model,
 		chassis = chassis,
@@ -13657,7 +13782,11 @@ local function build(model: Model)
 		display = readout,
 		displayAt = 0,
 		steer = 0,
-		engine = loopSound(chassis, "EngineSound", AUDIO.EngineSoundId, AUDIO.EngineVolume, "Engine"),
+		engine = if layerSpec then nil else loopSound(chassis, "EngineSound", AUDIO.EngineSoundId, AUDIO.EngineVolume, "Engine"),
+		layers = engineLayers(chassis, layerSpec),
+		layerSpec = layerSpec,
+		overrun = if layerSpec then loopSound(chassis, "EngineOff", AUDIO.EngineOffSoundId, 0, "Engine") else nil,
+		load = 0,
 		skid = loopSound(chassis, "SkidSound", AUDIO.SkidSoundId, 0, "Effects"),
 		offroad = loopSound(chassis, "OffroadSound", AUDIO.OffroadSoundId, 0, "Effects"),
 		kerb = loopSound(chassis, "KerbSound", AUDIO.KerbSoundId, 0, "Effects"),
@@ -13670,6 +13799,14 @@ local function unbuild(model: Model)
 	if v then
 		if v.engine then
 			v.engine:Destroy()
+		end
+		if v.layers then
+			for _, snd in v.layers do
+				snd:Destroy()
+			end
+		end
+		if v.overrun then
+			v.overrun:Destroy()
 		end
 		for _, snd in { v.skid, v.offroad, v.kerb } do
 			if snd then
@@ -13757,6 +13894,30 @@ local function updateGhosts()
 		end
 	end
 	ghostOn = all
+end
+
+-- engine revs: a rental kart's one gear and centrifugal clutch. On the
+-- throttle the clutch slips at EngineRpmClutch until the road speed takes the
+-- revs higher; off it the revs stay with the road until the clutch lets go
+-- (EngineRpmRelease), then it idles. A little higher when the rear wheels
+-- spin. Other karts: on the throttle whenever they move.
+local function engineRpm(speed: number, throttle: number, tele: KartPhysics.Result?): number
+	local roadRpm = AUDIO.EngineRpmMax * math.clamp(speed / cfg.TopSpeed, 0, 1.1)
+	local rpm: number
+	if throttle > 0.05 then
+		local slip = AUDIO.EngineRpmIdle + (AUDIO.EngineRpmClutch - AUDIO.EngineRpmIdle) * math.min(throttle * 1.5, 1)
+		rpm = math.max(roadRpm, slip)
+	else
+		rpm = if roadRpm > AUDIO.EngineRpmRelease then roadRpm else AUDIO.EngineRpmIdle
+	end
+	if tele then
+		for _, wt in tele.wheels do
+			if wt.spinning then
+				return rpm + 500
+			end
+		end
+	end
+	return rpm
 end
 
 local function update(dt: number)
@@ -13862,33 +14023,28 @@ local function update(dt: number)
 			end
 		end
 
-		-- engine revs: a rental kart's one gear and centrifugal clutch. On the
-		-- throttle the clutch slips at EngineRpmClutch until the road speed
-		-- takes the revs higher; off it the revs stay with the road until the
-		-- clutch lets go (EngineRpmRelease), then it idles. A little higher when
-		-- the rear wheels spin. Other karts: on the throttle whenever they move.
+		-- engine sound (engineRpm; the layered engine when it is uploaded)
 		local speed = math.abs(fwdSpeed)
+		local throttle = if ownTele then Input.get().throttle elseif speed > 2 then 1 else 0
 		if v.engine then
-			local roadRpm = AUDIO.EngineRpmMax * math.clamp(speed / cfg.TopSpeed, 0, 1.1)
-			local throttle = if ownTele then Input.get().throttle elseif speed > 2 then 1 else 0
-			local rpm: number
-			if throttle > 0.05 then
-				local slip = AUDIO.EngineRpmIdle + (AUDIO.EngineRpmClutch - AUDIO.EngineRpmIdle) * math.min(throttle * 1.5, 1)
-				rpm = math.max(roadRpm, slip)
-			else
-				rpm = if roadRpm > AUDIO.EngineRpmRelease then roadRpm else AUDIO.EngineRpmIdle
-			end
-			if ownTele then
-				for _, wt in ownTele.wheels do
-					if wt.spinning then
-						rpm += 500
-						break
-					end
-				end
-			end
-			v.rpm += (rpm - v.rpm) * math.min(dt * 8, 1)
+			v.rpm += (engineRpm(speed, throttle, ownTele) - v.rpm) * math.min(dt * 8, 1)
 			v.engine.PlaybackSpeed = v.rpm / AUDIO.EngineRpmLoop
 			v.engine.Volume = AUDIO.EngineVolume * (if ownTele then 0.55 + 0.45 * throttle else 0.8)
+		end
+		local layerSpec = v.layerSpec
+		if v.layers and layerSpec then
+			v.rpm += (engineRpm(speed, throttle, ownTele) - v.rpm) * math.min(dt * 8, 1)
+			v.load += (throttle - v.load) * math.min(dt * 12, 1)
+			local m = EngineAudio.mix(layerSpec, AUDIO.EngineOffRpm, v.rpm, v.load)
+			local gain = AUDIO.EngineLayerVolume * (if ownTele then 1 else 0.8)
+			for i, snd in v.layers do
+				snd.Volume = gain * m.volumes[i]
+				snd.PlaybackSpeed = m.speeds[i]
+			end
+			if v.overrun then
+				v.overrun.Volume = gain * m.offVolume
+				v.overrun.PlaybackSpeed = m.offSpeed
+			end
 		end
 		-- off the road: a rumble and gravel crunch that grows with speed
 		if v.offroad then
@@ -14001,7 +14157,7 @@ return KartVisuals
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="37">
+        <Item class="ModuleScript" referent="38">
           <Properties>
             <string name="Name">Menu</string>
             <string name="Source"><![CDATA[--!strict
@@ -15056,7 +15212,7 @@ return Menu
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="38">
+        <Item class="ModuleScript" referent="39">
           <Properties>
             <string name="Name">Settings</string>
             <string name="Source"><![CDATA[--!strict
@@ -15149,7 +15305,7 @@ return Settings
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="39">
+        <Item class="ModuleScript" referent="40">
           <Properties>
             <string name="Name">SettingsMenu</string>
             <string name="Source"><![CDATA[--!strict
@@ -15357,7 +15513,7 @@ return SettingsMenu
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="40">
+        <Item class="ModuleScript" referent="41">
           <Properties>
             <string name="Name">Sfx</string>
             <string name="Source"><![CDATA[--!strict
@@ -15472,7 +15628,7 @@ return Sfx
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="41">
+        <Item class="ModuleScript" referent="42">
           <Properties>
             <string name="Name">TrackLoader</string>
             <string name="Source"><![CDATA[--!strict
@@ -15580,7 +15736,7 @@ return TrackLoader
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="42">
+        <Item class="ModuleScript" referent="43">
           <Properties>
             <string name="Name">TrackOutline</string>
             <string name="Source"><![CDATA[--!strict
@@ -15669,7 +15825,7 @@ return TrackOutline
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="43">
+  <Item class="Workspace" referent="44">
     <Properties>
       <string name="Name">Workspace</string>
       <float name="Gravity">196.2</float>

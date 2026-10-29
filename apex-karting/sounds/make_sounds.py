@@ -169,6 +169,127 @@ def engine():
 
 
 # --------------------------------------------------------------------------
+# Engine layers (the second engine; the user found the first one unreal).
+# Why the first one sounded like a toy: one loop pitched from 0.5x to 1.4x
+# moves the pipe and muffler resonances with it (a real engine keeps them and
+# only fires faster), on and off the throttle were the same sound, and the
+# resonances were sine rings run through a hard saturation.
+#
+# Now a small physical model of the single-cylinder four-stroke, played at a
+# few steady rpm and loads that the game cross-fades (Config.Audio
+# EngineLayers, EngineOff*): each firing is the blowdown pulse as the exhaust
+# valve opens (sharp rise, decay over ~50 crank degrees) plus the piston
+# pushing the rest out; it runs down a header pipe (a delay line with an
+# inverting, lossy reflection at the open end: the pipe's own resonances),
+# into a muffler (expansion chamber: a low-pass, with a Helmholtz "boom"),
+# and radiates from the tailpipe (the derivative: brighter, as a pipe end
+# sounds). Cycle-to-cycle variation in strength and timing; off the throttle
+# the firings are weak and uneven, some miss and a few pop in the pipe.
+# Intake honk, valve ticks and the chain sit underneath.
+# --------------------------------------------------------------------------
+ENGINE_LAYERS = [  # file, rpm, load (0 = closed throttle, 1 = full)
+    ("engine_1700.ogg", 1700, 0.18),
+    ("engine_2800.ogg", 2800, 1.0),
+    ("engine_4000.ogg", 4000, 1.0),
+    ("engine_off.ogg", 3400, 0.0),
+]
+
+
+def pipe(x, delay_s, reflect, lp_hz):
+    """Header pipe: y = x + reflect * lowpass(y delayed by the round trip)."""
+    d = max(1, int(round(delay_s * RATE)))
+    a = np.exp(-2 * np.pi * lp_hz / RATE)
+    y = np.zeros(len(x))
+    lp = 0.0
+    for i in range(len(x)):
+        fb = y[i - d] if i >= d else 0.0
+        lp = (1 - a) * fb + a * lp
+        y[i] = x[i] + reflect * lp
+    return y
+
+
+def engine_note(rpm, load, seconds=3.0, seed=1):
+    r = np.random.default_rng(seed)
+    fire_hz = rpm / 120.0  # one firing every two turns
+    cycles = max(6, int(round(seconds * fire_hz)))
+    period = RATE / fire_hz
+    n = int(round(cycles * period))
+    rev_s = 60.0 / rpm
+    src = np.zeros(n)
+    # the exhaust gas flow out of the port, cycle by cycle
+    blow = rev_s * 50 / 360  # blowdown
+    push = rev_s * 180 / 360  # the exhaust stroke
+    span = int((blow * 4 + push) * RATE)
+    tt = np.arange(span) / RATE
+    strength = 0.22 + 0.78 * load
+    for c in range(cycles):
+        t0 = c * period + r.normal(0, (0.00025 + 0.0006 * (1 - load)) * RATE)
+        a = strength * (1 + (0.08 + 0.18 * (1 - load)) * r.standard_normal())
+        if load < 0.05 and r.random() < 0.12:
+            a *= 0.15  # a weak or missed firing on the overrun
+        b = blow * (0.85 + 0.3 * r.random())
+        kern = (1 - np.exp(-tt / 0.0003)) * np.exp(-tt / b)
+        kern += 0.45 * (1 - np.exp(-tt / 0.00008)) * np.exp(-tt / 0.0005)  # the valve's crack
+        kern += 0.18 * np.sin(np.pi * np.clip(tt / push, 0, 1)) * (tt < push)
+        if load < 0.05 and r.random() < 0.05:
+            # an afterfire pop in the pipe
+            m = int(0.012 * RATE)
+            pop = r.standard_normal(m) * np.exp(-np.arange(m) / RATE * 260)
+            kern[:m] += 1.4 * pop
+        idx = (int(t0) + np.arange(span)) % n
+        np.add.at(src, idx, a * kern)
+    # header pipe (~0.55 m of hot gas, c ~ 520 m/s), muffler, tailpipe
+    x = loop_filter(src, lambda v: pipe(v, 2 * 0.55 / 520, -0.78, 3500))
+    x = loop_filter(x, lambda v: lowpass(v, 1500 + 1300 * load, 1))
+    boom = loop_filter(x, lambda v: bandpass(v, 70, 130, 2))
+    x = x + 0.9 * boom
+    x = loop_filter(x, lambda v: pipe(v, 2 * 0.18 / 480, -0.45, 3500))  # short tailpipe
+    # radiation from the pipe end: rising 6 dB an octave above ~800 Hz
+    x = 0.4 * x + 0.6 * np.diff(np.r_[x[-1], x]) * RATE / (2 * np.pi * 800)
+    x = normalise(x, 1.0)
+    t = np.arange(n) / RATE
+    cyc = (t * fire_hz) % 1.0
+    # intake honk on the intake stroke, with the throttle open
+    intake = r.standard_normal(n) * np.exp(-((cyc - 0.55) % 1.0) * 9)
+    intake = loop_filter(intake, lambda v: bandpass(v, 260, 520, 2))
+    # valve ticks (two a cycle) and the chain (12-tooth sprocket)
+    ticks = r.standard_normal(n) * (np.exp(-((cyc - 0.3) % 1.0) * 220) + 0.8 * np.exp(-((cyc - 0.8) % 1.0) * 220))
+    ticks = loop_filter(ticks, lambda v: bandpass(v, 2500, 6000, 2))
+    # the chain only turns with the clutch in (not at idle): a rough whirr
+    tooth = rpm / 60 * 12
+    chain = loop_filter(r.standard_normal(n), lambda v: bandpass(v, tooth * 0.93, tooth * 1.07, 2))
+    chain_amount = 0.0 if rpm < 2000 else 0.012
+    x = x + (0.05 + 0.12 * load) * normalise(intake) + 0.035 * normalise(ticks) + chain_amount * normalise(chain)
+    x = loop_filter(x, lambda v: highpass(v, 35))
+    # only a soft limit (a little bark at full load)
+    x = np.tanh(normalise(x, 1.0) * (1.0 + 0.6 * load)) 
+    return normalise(x, 1.0)
+
+
+def phone_rms(x):
+    """Loudness as a phone speaker plays it (for levelling the layers)."""
+    y = signal.sosfilt(signal.butter(4, [450, 9000], "bandpass", fs=RATE, output="sos"), x)
+    return np.sqrt(np.mean(y ** 2))
+
+
+# loudness of each layer next to the full-throttle ones (dB)
+LAYER_DB = {"engine_1700.ogg": -6.0, "engine_2800.ogg": -1.0, "engine_4000.ogg": 0.0, "engine_off.ogg": -7.0}
+
+
+def engine_layers():
+    ref = None
+    out = {}
+    for i, (name, rpm, load) in enumerate(ENGINE_LAYERS):
+        out[name] = engine_note(rpm, load, seed=40 + i)
+    ref = phone_rms(out["engine_4000.ogg"])
+    gains = {name: 10 ** (LAYER_DB[name] / 20) * ref / phone_rms(x) for name, x in out.items()}
+    # one scale for all, so the loudest peak stays clear of clipping
+    top = max(np.max(np.abs(x)) * gains[name] for name, x in out.items())
+    for name, x in out.items():
+        write(name, x * gains[name] * 0.92 / top, loop=True)
+
+
+# --------------------------------------------------------------------------
 # Tyre skid: rubber scrubbing on asphalt. Band-passed noise with a wavering
 # squeal tone on top (slick tyres squeal less than road tyres).
 # --------------------------------------------------------------------------
@@ -457,7 +578,7 @@ def podium():
 
 
 SOUNDS = {
-    "engine": engine, "skid": skid, "offroad": offroad, "kerb": kerb, "bump": bump,
+    "engine": engine, "engine_layers": engine_layers, "skid": skid, "offroad": offroad, "kerb": kerb, "bump": bump,
     "beep": beep, "go": go, "lap": lap, "best": best, "warning": warning,
     "penalty": penalty, "flag": flag, "finish": finish, "podium": podium,
     "click": click, "crowd": crowd,

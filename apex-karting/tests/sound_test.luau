@@ -113,4 +113,69 @@ local speedNow = chassis().AssemblyLinearVelocity.Magnitude
 check(math.abs(kerbRate - math.clamp(speedNow / 72, 0.4, 1.6)) < 0.1, string.format("drumming rate follows the speed (x%.2f at %.0f km/h)", kerbRate, speedNow * KMH))
 G.releaseKey("W")
 check(#G.errors == 0, "no script errors")
+
+print("== Layered engine (EngineAudio) ==")
+do
+	-- the mix itself: the nearest two loops, each pitched only a little
+	local EA = Game.sharedModule(G, ctx, "EngineAudio")
+	local layers = { { id = "a", rpm = 1700 }, { id = "b", rpm = 2800 }, { id = "c", rpm = 4000 } }
+	local worstPower, worstPitch = 0, 1
+	for _, ld in { 0, 0.5, 1 } do
+		for r = 2600, 4200, 50 do
+			local m = EA.mix(layers, 3400, r, ld)
+			local p2 = m.offVolume ^ 2
+			if m.offVolume >= 0.5 then
+				worstPitch = math.max(worstPitch, m.offSpeed, 1 / m.offSpeed)
+			end
+			for i, vol in m.volumes do
+				p2 += vol * vol
+				-- (what you mostly hear: a loop at half volume or more)
+				if vol >= 0.5 then
+					worstPitch = math.max(worstPitch, m.speeds[i], 1 / m.speeds[i])
+				end
+			end
+			if ld ~= 0.5 then
+				worstPower = math.max(worstPower, math.abs(p2 - 1))
+			end
+		end
+	end
+	check(worstPower < 1e-6, "on or off the throttle: the cross-fade keeps the power constant")
+	check(worstPitch < 1.35, string.format("driving (2600 rpm up), the loop you hear is never pitched more than x%.2f (the old one: x1.89 between idle and top, moving its resonances)", worstPitch))
+	local pull = EA.mix(layers, 3400, 2400, 1)
+	check(pull.volumes[1] == 0 and pull.volumes[2] == 1, "on the throttle at low revs: the full-load loop, not the idle")
+	local lift = EA.mix(layers, 3400, 3500, 0)
+	check(lift.volumes[2] == 0 and lift.volumes[3] == 0 and lift.offVolume > 0.9, "throttle closed at speed: the overrun loop only")
+	local idle = EA.mix(layers, 3400, 1600, 0)
+	check(idle.volumes[1] == 1 and idle.offVolume == 0, "standing: the idle loop")
+	check(EA.layers({ EngineLayers = { { id = "", rpm = 1700 }, { id = "x", rpm = 2800 } }, EngineOffSoundId = "y" }) == nil, "not used until every loop is uploaded")
+end
+do
+	-- in the game, with the loops uploaded
+	local G2 = Game.boot({ printErrors = true, reserved = { mode = "race" } })
+	local B = G2.addPlayer("Bob", 202)
+	local ctx2 = G2.startClient(B, Game.ClientSpec)
+	local C2 = Game.sharedModule(G2, ctx2, "Config")
+	for i, l in C2.Audio.EngineLayers do
+		l.id = "rbxassetid://9" .. i
+	end
+	C2.Audio.EngineOffSoundId = "rbxassetid://99"
+	G2.run(5)
+	local KC2 = Game.clientModule(G2, ctx2, "KartController")
+	local c = KC2.chassis()
+	local function s(name: string)
+		return c:FindFirstChild(name)
+	end
+	check(s("EngineSound") == nil and s("Engine1700") ~= nil and s("Engine4000") ~= nil and s("EngineOff") ~= nil, "the layered engine replaces the single loop")
+	G2.run(1)
+	check(s("Engine1700").Volume > 1 and s("Engine2800").Volume < 0.05 and s("EngineOff").Volume < 0.05, string.format("idle: the idle loop (%.2f)", s("Engine1700").Volume))
+	G2.pressKey("W")
+	G2.run(8)
+	local v2 = c.AssemblyLinearVelocity.Magnitude
+	local loaded = s("Engine2800").Volume + s("Engine4000").Volume
+	check(loaded > 1.5 and s("Engine1700").Volume < 0.1 and s("EngineOff").Volume < 0.1, string.format("on the throttle at %.0f km/h: the full-throttle loops (%.2f)", v2 * KMH, loaded))
+	G2.releaseKey("W")
+	G2.run(0.6)
+	check(s("EngineOff").Volume > 1 and s("Engine4000").Volume < 0.3, string.format("lifting at speed: the overrun loop (%.2f)", s("EngineOff").Volume))
+	check(#G2.errors == 0, "no script errors (layered engine)")
+end
 print(string.format("%d/%d passed", pass, total))

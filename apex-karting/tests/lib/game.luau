@@ -21,6 +21,7 @@ Game.SharedSpec = {
 		module("SteerFilter", "src_shared_SteerFilter_luau"),
 		module("CockpitRig", "src_shared_CockpitRig_luau"),
 		module("TrackLimits", "src_shared_TrackLimits_luau"),
+		module("EngineAudio", "src_shared_EngineAudio_luau"),
 	},
 }
 

@@ -406,7 +406,20 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   resonances 85-1750 Hz, a 600 Hz chain whine, clatter and intake (-22 dB(A) on a phone), kerb /
   off-road / bump brightened too, and the volumes solved with `sounds/mix_levels.py` (prints
   dB vs the engine on phone / laptop / headphones). Those 4 files were re-uploaded (new ids in Config.Audio).
-- Engine audio is an rpm model (KartVisuals): EngineRpmLoop 3000 is the loop's recorded rpm; idle
+- Layered engine (user, Oct 29 2026: "the engine / exhaust sound is bad, not real"). Cause: one 3000 rpm
+  loop pitched x0.53..1.4 moved the pipe/muffler resonances with the revs (tape-speed toy sound), on and
+  off throttle sounded alike, sine-mode rings through tanh. make_sounds.py engine_layers: a physical model
+  per firing (blowdown pulse + valve crack + exhaust-stroke push, cycle-to-cycle jitter) -> header pipe
+  (delay line, inverting lossy reflection, ~240 Hz odd series) -> muffler (1st-order low-pass + 70-130 Hz
+  boom) -> short tailpipe -> radiation shelf (+6 dB/oct over 800 Hz), intake honk, valve ticks, chain
+  (not at idle: clutch out). Layers: engine_1700 (idle), engine_2800 / engine_4000 (full load),
+  engine_off (3400, closed: weak/missed firings, pops). Levelled to phone loudness; EngineLayerVolume 2.1
+  matches the old engine (pulsy, ~6.5 dB quieter at equal volume). shared/EngineAudio.mix: on the throttle
+  only full-load loops (equal-power by rpm), closed throttle idle -> overrun over 800 rpm, the throttle
+  fades between; the loop you hear is pitched at most x1.31. Used only when all four ids are in
+  Config.Audio (EngineAudio.layers), else the old single loop. sounds/engine_preview.py renders a drive
+  (old vs new mp3) with the same rpm model and mix, for listening before uploading.
+- Engine audio is an rpm model (KartVisuals.engineRpm): EngineRpmLoop 3000 is the old loop's recorded rpm; idle
   1600; on the throttle the centrifugal clutch slips at 2600 until road rpm (4200 x speed/TopSpeed)
   is higher; off the throttle the revs follow the road until 2000 (clutch releases), then idle.
   Offroad loop: wheels on Gravel (1) / Water (0.8) / Grass, Turf (0.6), x speed/30. Kerb loop:

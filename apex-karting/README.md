@@ -156,11 +156,15 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 
 ## 소리
 
-`sounds/` 폴더에 이 게임용으로 직접 합성한 소리 16개가 있어요(녹음·샘플 없이 `sounds/make_sounds.py`로 만든 거라 저작권 걱정 없어요). ★ = 이번에 새로 만들었거나 바뀐 파일이에요(예전 9개를 이미 올렸다면 ★만 올리면 돼요).
+`sounds/` 폴더에 이 게임용으로 직접 합성한 소리 20개가 있어요(엔진 루프 4개 추가)(녹음·샘플 없이 `sounds/make_sounds.py`로 만든 거라 저작권 걱정 없어요). ★ = 이번에 새로 만들었거나 바뀐 파일이에요(예전 9개를 이미 올렸다면 ★만 올리면 돼요).
 
 | 파일 | 넣을 곳 (`Shared/Config` → `Config.Audio`) | 용도 |
 |---|---|---|
-| ★ engine_loop.ogg | `EngineSoundId` | 렌탈 카트 단기통 4행정 엔진(GX390급), 3000 rpm 녹음. 공회전 1600 → 출발할 때 원심 클러치가 2600 rpm에서 미끄러지고 → 속도에 따라 최고 4200 rpm |
+| engine_loop.ogg | `EngineSoundId` | 예전 엔진(하나의 3000 rpm 루프를 rpm에 따라 늘였다 줄임). 아래 새 엔진 4개를 올리기 전까지만 쓰여요 |
+| ★ engine_1700.ogg | `EngineLayers[1].id` | 새 엔진: 공회전(액셀 뗀 저rpm) |
+| ★ engine_2800.ogg | `EngineLayers[2].id` | 새 엔진: 풀 스로틀 2800 rpm (출발, 저속) |
+| ★ engine_4000.ogg | `EngineLayers[3].id` | 새 엔진: 풀 스로틀 4000 rpm (고속) |
+| ★ engine_off.ogg | `EngineOffSoundId` | 새 엔진: 액셀 뗀 고rpm(엔진 브레이크, 부글거림·팝) |
 | skid_loop.ogg | `SkidSoundId` | 타이어 미끄러지는 소리 |
 | ★ offroad_loop.ogg | `OffroadSoundId` | 바퀴가 자갈·잔디·물에 들어갔을 때 덜컹거림 + 자갈 튀는 소리 (속도에 따라 커짐) |
 | ★ kerb_loop.ogg | `KerbSoundId` | 연석 밟을 때 드르르 (속도에 맞춰 빨라짐) |
@@ -180,6 +184,8 @@ HUD는 글자가 선명하게 보이도록 픽셀 단위로 딱 맞는 배율만
 **지금 상태**: 16개 모두 올려서 ID를 `Config.Audio`에 넣어 뒀어요(2026-10-27 업로드). 그 뒤 휴대폰 스피커에서 엔진이 거의 안 들려서 engine_loop / kerb_loop / offroad_loop / bump 4개를 다시 만들었어요(저음 위주였던 소리를 휴대폰 스피커가 낼 수 있는 대역으로). 이 4개도 다시 올려서 새 ID로 바꿔 뒀어요. 지금 16개 ID 모두 최신 파일이에요.
 
 **음량**: `python3 sounds/mix_levels.py`가 플레이어가 듣는 대로(Roblox 볼륨 모델, 카메라 거리, 휴대폰·노트북·헤드폰 스피커, A-가중치) 소리마다 엔진 대비 몇 dB인지 계산해요. 지금 값: 풀 스로틀 엔진이 가장 큰 지속음, 미끄러짐 −6 dB, 연석·자갈 −4~5 dB, 가까운 관중석 −15 dB, 레이스 알림음 0~+3 dB.
+
+**새 엔진 소리 (2026-10-29)**: 예전 엔진은 3000 rpm 루프 하나를 0.53~1.4배로 늘였다 줄여서, 배기관·머플러 울림까지 같이 오르내리는 장난감 같은 소리였고 액셀을 떼도 같은 소리였어요. 새 엔진은 단기통 4행정의 배기 펄스 → 배기관 반사 → 머플러 → 배기구 방사를 흉내 내서 합성한 루프 4개를 rpm과 액셀에 따라 섞어요(`Shared/EngineAudio`): 액셀을 밟으면 2800/4000 rpm 풀 스로틀 루프, 떼면 저rpm은 공회전, 고rpm은 overrun(약하고 들쭉날쭉한 폭발, 가끔 "팝"). 각 루프는 조금만 늘이고 줄여서 울림은 제자리에 있고 폭발 간격만 바뀌어요. **새 루프 4개의 ID를 모두 넣기 전까지는 예전 엔진이 그대로 나와요.** 올리기 전에 `python3 sounds/engine_preview.py 폴더`로 예전/새 엔진으로 한 바퀴 달리는 소리를 mp3로 들어볼 수 있어요.
 
 **올리는 법**: Studio → View → Asset Manager → Bulk Import(또는 Import) → `sounds/*.ogg` 선택 → 올라간 오디오를 오른쪽 클릭 → Copy Asset ID → `Config.Audio`의 해당 칸에 `"rbxassetid://숫자"` 형태로 붙여넣기. 비어 있는 칸은 무음이에요. 오디오 업로드는 Roblox 계정 인증(전화번호 등)이 필요할 수 있어요.
 
@@ -355,7 +361,7 @@ src/client/   (StarterPlayerScripts.Client)
   Menu (메인 메뉴·트랙 카드·매칭 대기·방 코드·기록·fly-by 카메라·LOBBY 버튼) / TrackOutline (트랙 모양 그림)
 src/first/    (ReplicatedFirst.Loading)
   init.client   로딩 화면 띄우기·진행 바·팁 / LoadingGui (로딩 화면 모양, 메뉴도 서버 이동 때 같이 씀)
-sounds/       직접 합성한 효과음 .ogg 16개 + 만드는 스크립트
+sounds/       직접 합성한 효과음 .ogg 20개 + 만드는 스크립트 + 엔진 미리 듣기(engine_preview.py)
 tests/        헤드리스 테스트 (Luau CLI)
 tools/design/ 서킷 설계·미리보기·홍보 이미지용 파이썬 스크립트 (게임에는 안 들어감, tools/design/README.md)
 ```

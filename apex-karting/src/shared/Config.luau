@@ -306,6 +306,18 @@ Config.Audio = {
 	EngineRpmClutch = 2600,
 	EngineRpmRelease = 2000,
 	EngineRpmMax = 4200,
+	-- the layered engine (shared/EngineAudio, sounds/make_sounds.py
+	-- engine_layers): engine_1700 (idle), engine_2800, engine_4000 (full
+	-- throttle) and engine_off (closed throttle) at the rpm they were made
+	-- at. While any id is empty the single EngineSoundId loop plays instead.
+	EngineLayers = {
+		{ id = "", rpm = 1700 }, -- sounds/engine_1700.ogg
+		{ id = "", rpm = 2800 }, -- sounds/engine_2800.ogg
+		{ id = "", rpm = 4000 }, -- sounds/engine_4000.ogg
+	},
+	EngineOffSoundId = "", -- sounds/engine_off.ogg
+	EngineOffRpm = 3400,
+	EngineLayerVolume = 2.1, -- the pulsy layers sit ~6.5 dB under the old loop at the same volume (mix_levels)
 	SkidSoundId = "rbxassetid://117100105483453",
 	SkidVolume = 0.31,
 	OffroadSoundId = "rbxassetid://83887645728236",
