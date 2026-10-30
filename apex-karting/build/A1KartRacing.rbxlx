@@ -2578,8 +2578,9 @@ local Tampines = {
 		{ kind = "A", radius = 110, angle = 60, name = "T7" },
 		{ kind = "A", radius = 65, angle = 60, name = "T8" },
 		{ kind = "S", length = 160 },
-		{ kind = "A", radius = 50, angle = -40, name = "Chicane" },
-		{ kind = "A", radius = 50, angle = 40 },
+		-- a real chicane: r 50 +-40 was straight-lined flat (tests/tools/cornerreview)
+		{ kind = "A", radius = 30, angle = -68, name = "Chicane" },
+		{ kind = "A", radius = 30, angle = 68, name = "Chicane" },
 		{ kind = "S", length = 130 },
 		{ kind = "A", radius = 85, angle = 60, width = 38, name = "T10" },
 		{ kind = "S", length = "free", width = 42 },
@@ -2646,20 +2647,22 @@ local Silverstone = {
 		{ kind = "A", radius = 92.4, angle = 24.58, name = "Copse" },
 		{ kind = "A", radius = 100.4, angle = 22.57, name = "Copse" },
 		{ kind = "A", radius = 1562.7, angle = 14.9 },
-		{ kind = "A", radius = 153.1, angle = -18.25, name = "Maggotts" },
-		{ kind = "A", radius = 196.8, angle = -14.6, name = "Maggotts" },
-		{ kind = "S", length = 7.3 },
-		{ kind = "A", radius = 68, angle = 29.83, name = "Becketts" },
-		{ kind = "A", radius = 84.3, angle = 24.21, name = "Becketts" },
-		{ kind = "S", length = 54.2 },
-		{ kind = "A", radius = 206.5, angle = -12.23, name = "Becketts" },
-		{ kind = "A", radius = 94.8, angle = -25.83, name = "Becketts" },
-		{ kind = "A", radius = 108.2, angle = -23.19, name = "Becketts" },
-		{ kind = "S", length = 11.2 },
-		{ kind = "A", radius = 92.9, angle = 24.6, name = "Becketts" },
-		{ kind = "A", radius = 67.2, angle = 33.01, name = "Becketts" },
-		{ kind = "A", radius = 75.9, angle = 30.12, name = "Becketts" },
-		{ kind = "A", radius = 175.4, angle = 13.08, name = "Becketts" },
+		-- Maggotts-Becketts at 0.6 x the fitted size: full size it was flat out
+		-- at 96 km/h; now a lift, a brake and a slow last Becketts onto Chapel
+		{ kind = "A", radius = 91.9, angle = -18.25, name = "Maggotts" },
+		{ kind = "A", radius = 118.1, angle = -14.6, name = "Maggotts" },
+		{ kind = "S", length = 4.4 },
+		{ kind = "A", radius = 40.8, angle = 29.83, name = "Becketts" },
+		{ kind = "A", radius = 50.6, angle = 24.21, name = "Becketts" },
+		{ kind = "S", length = 32.5 },
+		{ kind = "A", radius = 123.9, angle = -12.23, name = "Becketts" },
+		{ kind = "A", radius = 56.9, angle = -25.83, name = "Becketts" },
+		{ kind = "A", radius = 64.9, angle = -23.19, name = "Becketts" },
+		{ kind = "S", length = 6.7 },
+		{ kind = "A", radius = 55.7, angle = 24.6, name = "Becketts" },
+		{ kind = "A", radius = 40.3, angle = 33.01, name = "Becketts" },
+		{ kind = "A", radius = 45.5, angle = 30.12, name = "Becketts" },
+		{ kind = "A", radius = 105.2, angle = 13.08, name = "Becketts" },
 		{ kind = "S", length = 37 },
 		{ kind = "A", radius = 163.8, angle = -12.87, name = "Chapel" },
 		{ kind = "A", radius = 114.8, angle = -17.91, name = "Chapel" },
@@ -2722,8 +2725,10 @@ local Lakeside = {
 		{ kind = "S", length = 36.3 },
 		{ kind = "A", radius = 55, angle = 45, name = "Willow" },
 		{ kind = "S", length = "free" },
-		{ kind = "A", radius = 90, angle = 90, name = "Last corner" },
-		{ kind = "S", length = 252.2, width = 36 },
+		-- r 55 (was 90, flat): a brake onto the straight; the straight after it
+		-- is 35 longer so the corner's exit (and the infield) stays put
+		{ kind = "A", radius = 55, angle = 90, name = "Last corner" },
+		{ kind = "S", length = 287.2, width = 36 },
 	} :: { any },
 }
 
@@ -2807,8 +2812,9 @@ local Harbour = {
 		{ kind = "S", length = 305.7, width = 35, name = "Start straight" },
 		{ kind = "A", radius = 55, angle = 135, width = 33, name = "Crane" },
 		{ kind = "S", length = 237.6 },
-		{ kind = "A", radius = 40, angle = -40, name = "Chicane" },
-		{ kind = "A", radius = 40, angle = 40, name = "Chicane" },
+		-- r 28 +-70 (was 40 +-40, straight-lined flat): brake to ~68 km/h
+		{ kind = "A", radius = 28, angle = -70, name = "Chicane" },
+		{ kind = "A", radius = 28, angle = 70, name = "Chicane" },
 		{ kind = "S", length = 184.1 },
 		{ kind = "A", radius = 60, angle = -90, name = "Dock" },
 		{ kind = "S", length = "free" },
@@ -3240,10 +3246,75 @@ local YasMarina = {
 	} :: { any },
 }
 
+-- Two beginner circuits (user, Oct 30 2026: "make two circuits for
+-- beginners"): flat, wide roads (40-44 studs, the kart circuits are 32-36),
+-- no hairpins, every corner r 55 or more with a gentle lift or brake at most,
+-- and laps under 0.6 km so a lap is quick to learn.
+local Rookie = {
+	Id = "Rookie",
+	Name = "Rookie Ring",
+	Blurb = "Beginner circuit - wide road, five easy corners",
+	Laps = 4,
+	Lengths = { 3, 4, 6 },
+	Qualifying = 90,
+	Spacing = 6,
+	Smoothing = 10,
+	BankSmoothing = 22,
+	CornerBoards = true,
+	Segments = {
+		{ kind = "S", length = 250, width = 44, name = "Start straight" },
+		{ kind = "A", radius = 70, angle = 90, width = 42, name = "Turn 1" },
+		{ kind = "S", length = 200 },
+		{ kind = "A", radius = 90, angle = 60, name = "Turn 2" },
+		{ kind = "S", length = 100 },
+		{ kind = "A", radius = 90, angle = 30, name = "Turn 3" },
+		{ kind = "S", length = 380 },
+		{ kind = "A", radius = 65, angle = 90, name = "Turn 4" },
+		{ kind = "S", length = "free", name = "Back straight" },
+		{ kind = "A", radius = 75, angle = 90, name = "Turn 5" },
+		{ kind = "S", length = "free", width = 44 },
+	} :: { any },
+}
+
+local Meadow = {
+	Id = "Meadow",
+	Name = "Meadow Park",
+	Blurb = "Beginner circuit - gentle esses among the pines",
+	Laps = 4,
+	Lengths = { 3, 4, 6 },
+	Qualifying = 90,
+	Spacing = 6,
+	Smoothing = 10,
+	BankSmoothing = 22,
+	Sky = "Morning",
+	CornerBoards = true,
+	Trees = true,
+	Segments = {
+		{ kind = "S", length = 230, width = 42, name = "Start straight" },
+		{ kind = "A", radius = 60, angle = 90, width = 40, name = "Turn 1" },
+		{ kind = "S", length = 200 },
+		{ kind = "A", radius = 100, angle = -45, name = "Esses" },
+		{ kind = "A", radius = 100, angle = 45, name = "Esses" },
+		{ kind = "S", length = 100 },
+		{ kind = "A", radius = 55, angle = 120, name = "Oak bend" },
+		{ kind = "S", length = 380 },
+		{ kind = "A", radius = 150, angle = -20, name = "Kink" },
+		{ kind = "S", length = 140 },
+		{ kind = "A", radius = 120, angle = 80, name = "Long right" },
+		{ kind = "S", length = "free" },
+		{ kind = "A", radius = 60, angle = 60, name = "Turn 6" },
+		{ kind = "S", length = 80 },
+		{ kind = "A", radius = 70, angle = 30, name = "Last corner" },
+		{ kind = "S", length = "free", width = 42 },
+	} :: { any },
+}
+
 local TrackData = {
 	Default = "Tampines",
-	Order = { "Tampines", "Silverstone", "Lakeside", "Hillside", "Harbour", "Suzuka", "Catalunya", "Zandvoort", "YasMarina" },
+	Order = { "Rookie", "Meadow", "Tampines", "Silverstone", "Lakeside", "Hillside", "Harbour", "Suzuka", "Catalunya", "Zandvoort", "YasMarina" },
 	Tracks = {
+		Rookie = Rookie,
+		Meadow = Meadow,
 		Tampines = Tampines,
 		Silverstone = Silverstone,
 		Lakeside = Lakeside,
@@ -6482,6 +6553,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local TrackMath = require(Shared:WaitForChild("TrackMath"))
+local TrackData = require(Shared:WaitForChild("TrackData"))
 local TrackLayout = require(Shared:WaitForChild("TrackLayout"))
 local TrackLimits = require(Shared:WaitForChild("TrackLimits"))
 local RaceProgress = require(Shared:WaitForChild("RaceProgress"))
@@ -7998,6 +8070,12 @@ function RaceManager.addCircuit(c: Circuit)
 	end
 	circuits[c.id] = c
 	table.insert(order, c.id)
+	-- in TrackData.Order (the menu's order), not the order they were built
+	-- in: the first one built is the one in use, and the HUD's number keys
+	-- would not match the menu
+	table.sort(order, function(x, y)
+		return (table.find(TrackData.Order, x) or math.huge) < (table.find(TrackData.Order, y) or math.huge)
+	end)
 	if c ~= current then
 		c.folder.Name = c.id
 		c.folder.Parent = storage
@@ -11995,9 +12073,9 @@ end
 -- is a vote for the next race (the server counts them), with the race length
 -- and the READY button
 ----------------------------------------------------------------------------
--- cards sit two to a row (five circuits and counting)
-local CARD_W, CARD_H, CARD_GAP = 228, 62, 6
-local PANEL_W = CARD_W * 2 + CARD_GAP
+-- cards sit three to a row (eleven circuits: two a row ran off a phone screen)
+local CARD_W, CARD_H, CARD_GAP, CARD_COLS = 228, 62, 6, 3
+local PANEL_W = CARD_W * CARD_COLS + CARD_GAP * (CARD_COLS - 1)
 local cardGrid: Frame
 
 local function trackIds(): { string }
@@ -12093,7 +12171,7 @@ local function buildTrackPanel()
 	local gridLayout = Instance.new("UIGridLayout")
 	gridLayout.CellSize = UDim2.fromOffset(CARD_W, CARD_H)
 	gridLayout.CellPadding = UDim2.fromOffset(CARD_GAP, CARD_GAP)
-	gridLayout.FillDirectionMaxCells = 2
+	gridLayout.FillDirectionMaxCells = CARD_COLS
 	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	gridLayout.Parent = cardGrid
 	-- race length: three buttons with the vote counts
@@ -12746,8 +12824,8 @@ function Hud.init(remotes: Folder)
 		-- banner: down the left it covered the steering buttons
 		trackPanel.Position = UDim2.fromOffset(0, 58)
 	else
-		-- in the middle under the banner too: nine cards in two columns are
-		-- too tall for the space under the lap times
+		-- in the middle under the banner too: the cards are too many for the
+		-- space under the lap times
 		trackPanel.Position = UDim2.fromOffset(0, 118)
 	end
 
@@ -14532,7 +14610,7 @@ local function buildHome()
 	nowShowing.TextStrokeTransparency = 0.5
 end
 
--- three rows of three: room for nine tracks in the panel
+-- three cards a row, three rows in view; more scroll
 local CARD_W, CARD_H = 238, 100
 -- `registry`: where the card is kept by id; `onPick`: what a click does
 local function buildCard(parent: Instance, id: string, registry: { [string]: TextButton }, onPick: (string) -> ()): TextButton
@@ -14574,13 +14652,20 @@ local function buildCard(parent: Instance, id: string, registry: { [string]: Tex
 	return card
 end
 
--- a 3 x 3 grid of track cards in panel `p` (the practice and room pickers)
+-- a grid of track cards in panel `p` (the practice and room pickers): three
+-- a row, three rows in view, the rest a scroll away
 local function cardGrid(p: Frame, registry: { [string]: TextButton }, onPick: (string) -> ())
-	local grid = Instance.new("Frame")
+	local grid = Instance.new("ScrollingFrame")
 	grid.Name = "Cards"
-	grid.Size = UDim2.fromOffset(746, 320) -- three cards a row (742) and a little spare
+	grid.Size = UDim2.fromOffset(756, 320) -- three cards a row (742) and the scroll bar
 	grid.Position = UDim2.fromOffset(24, 60)
 	grid.BackgroundTransparency = 1
+	grid.BorderSizePixel = 0
+	grid.ScrollBarThickness = 6
+	grid.ScrollBarImageColor3 = ACCENT
+	grid.ScrollingDirection = Enum.ScrollingDirection.Y
+	grid.CanvasSize = UDim2.new()
+	grid.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	grid.Parent = p
 	local layout = Instance.new("UIGridLayout")
 	layout.CellSize = UDim2.fromOffset(CARD_W, CARD_H)
