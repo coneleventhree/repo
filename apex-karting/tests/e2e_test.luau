@@ -1310,11 +1310,15 @@ G.run(0.5)
 do
 	local kq, kb = kartOf(A), kartOf(B)
 	check(kq ~= nil and kb ~= nil and not kq.PrimaryPart.Anchored and A:GetAttribute("InRace") == true and B:GetAttribute("InRace") == true, "both out on track in qualifying (karts free)")
-	-- one timed lap with ghosts: everyone from the same spot before the line
+	-- one timed lap with ghosts: everyone from the same spot before the line,
+	-- already rolling (a flying lap), so 0.5 s on they are that much closer
 	local _, _, sArc = TrackMath.nearest(track, kq.PrimaryPart.Position)
 	local behind = -TrackMath.arcDelta(track, sArc, 0)
 	local apart = (kq.PrimaryPart.Position - kb.PrimaryPart.Position).Magnitude
-	check(math.abs(behind - Config.Race.QualiRunUp) < 15 and apart < 6, string.format("one-lap qualifying: both start together %.0f studs before the line (%.1f studs apart)", behind, apart))
+	local rolled = Config.Race.QualiRunUp - behind
+	local speed = kq.PrimaryPart.AssemblyLinearVelocity:Dot(kq.PrimaryPart.CFrame.LookVector)
+	check(behind > 10 and rolled > 0.3 * Config.Race.QualiLaunchSpeed and rolled < 0.7 * Config.Race.QualiLaunchSpeed and apart < 6, string.format("one-lap qualifying: both start together, rolling (%.0f studs before the line after 0.5 s, %.1f studs apart)", behind, apart))
+	check(speed > 0.85 * Config.Race.QualiLaunchSpeed, string.format("flying start: %.0f studs/s 0.5 s in (launch %d)", speed, Config.Race.QualiLaunchSpeed))
 	check(ws:GetAttribute("Ghost") == true, "ghost mode on in qualifying")
 	check(hud().Banner.Text.Text:find("CLOCK STARTS AT THE LINE") ~= nil, "banner: " .. hud().Banner.Text.Text)
 	check(hud().Big.Text == "QUALIFYING" and hud().Position.Visible and hud().Position.Lap.Text == "QUALIFYING", "QUALIFYING shown with the position panel")
