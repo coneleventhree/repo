@@ -189,14 +189,21 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   touches the corkscrew straight); (3) BankSmoothing 40: a fast bank twist (22) rocked the rigid
   kart onto two wheels and at 20 fps the sim went NaN; 15 deg at the Karussell made the 20 fps
   autopilot spin, 12 deg is fine. tests/tools/bank.luau: 12.6 m hairpin 54 km/h flat -> 65 at 12 deg.
-- Hillside v2 (user, Oct 28 2026, approved from a before/after preview): "Sling" = right-left flick
-  at the top of the Hill climb (straight B), 44 studs before the Crest. Was r 85 +-28 deg, but the
-  user found it could be taken flat (Oct 30: "속도 안줄이고 그냥 대충 지나갈수있어"): its jog was
-  ~20 studs on a 33-stud road, straight-lineable. Now r 35 +-70 deg (brake 88 -> ~72 km/h on the
-  ideal line); Corkscrew r 34 +-50 (flat) -> r 28 +-65 (a lift). Judge corners with
+- Hillside v2 (user, Oct 28 2026, approved from a before/after preview). "Sling" v3 (Oct 30: the user
+  found the old r 85 +-28 jog at the top of the climb could be taken flat, "속도 안줄이고 그냥 대충
+  지나갈수있어": its jog was ~20 studs on a 33-stud road, straight-lineable): now r 35 +70 / r 65 -70
+  at the FOOT of the hill (y 9-10, right after the Turn 1 free straight; brake ~81 -> 69 km/h on the
+  ideal line), then the Uphill esses opened to r 90 +-52 (they step left as far as the Sling steps
+  right, so everything from the Hill climb on stays where it was; now a lift), Hill climb 130 +
+  44 to the Crest. Tried first at the top of the climb (y 29): the inside of so tight an arc on a
+  tall embankment leaves 8-12 stud cliffs in the grass ~40 studs off the road whatever the radii,
+  order or gap between the arcs (TrackLayout.pockets closes the fan's mouth where the two long
+  strips cross, at the higher one's height, and they cross at very different heights there);
+  low down the strips are short and never cross. Judge corners with
   `luau tests/tools/cornerreview.luau [-a "Id Name=r,angle"]` (converged min-curvature line over
   the whole road + point-mass speeds: FLAT / lift / brake per named corner) -- the autopilot
-  follows the centreline, so it calls straight-lineable corners hard; "Long sweeper" = one 180 deg
+  follows the centreline, so it calls straight-lineable corners hard. Check embankments with
+  `luau tests/tools/probe_hill.luau` (regenerate the mock first: it runs the mock's copy of src); "Long sweeper" = one 180 deg
   r 72 bank 6 corner replacing the two 90 deg Last corners (65-69 km/h, steering held ~3 s). The
   back straight rose to y 2 (bank 6 put the inside band under the lawn at y 1). Design with
   `tests/tools/speedmap.luau -a <id>` + `speedmap.py` (autopilot speed per sample, corner minima).
