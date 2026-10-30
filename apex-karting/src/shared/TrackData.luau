@@ -222,15 +222,17 @@ local Hillside = {
 		{ kind = "A", radius = 90, angle = -30, y = 12, name = "Uphill esses" },
 		{ kind = "A", radius = 90, angle = 30, y = 16, name = "Uphill esses" },
 		{ kind = "S", length = 196, y = 27, name = "Hill climb" },
-		-- the sling: a fast right-left flick at the top of the climb, then
-		-- brake for the blind crest
-		{ kind = "A", radius = 85, angle = 28, y = 29, name = "Sling" },
-		{ kind = "A", radius = 85, angle = -28, y = 30, name = "Sling" },
+		-- the sling: a tight right-left flick at the top of the climb, too
+		-- sharp to straight-line (brake to ~72 km/h, tests/tools/cornerreview),
+		-- then brake again for the blind crest
+		{ kind = "A", radius = 35, angle = 70, y = 29, name = "Sling" },
+		{ kind = "A", radius = 35, angle = -70, y = 30, name = "Sling" },
 		{ kind = "S", length = 44, y = 30 },
 		{ kind = "A", radius = 50, angle = 90, y = 32, name = "Crest" },
 		{ kind = "S", length = 174, y = 28 },
-		{ kind = "A", radius = 34, angle = -50, y = 26, name = "Corkscrew" },
-		{ kind = "A", radius = 34, angle = 50, y = 24, name = "Corkscrew" },
+		-- downhill flick: a lift, not flat
+		{ kind = "A", radius = 28, angle = -65, y = 26, name = "Corkscrew" },
+		{ kind = "A", radius = 28, angle = 65, y = 24, name = "Corkscrew" },
 		{ kind = "S", length = 246, y = 24 },
 		{ kind = "A", radius = 45, angle = 180, bank = 12, y = 24, name = "Karussell" },
 		{ kind = "S", length = 251, y = 25 },

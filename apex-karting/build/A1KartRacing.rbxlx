@@ -695,10 +695,13 @@ Config.Race = {
 	QualifyingTime = 120, -- default; tracks set their own (TrackData Qualifying)
 	QualiOvertime = 90, -- at most this long to finish the lap after the flag
 	-- Qualifying is one timed lap with ghosts (user's choice): everyone starts
-	-- together this far before the line, picks up speed, and the lap is timed
+	-- together this far before the line, already rolling at QualiLaunchSpeed
+	-- (a flying lap: the line is crossed near top speed), and the lap is timed
 	-- from the line round to the line. Karts pass through each other (no
-	-- bumpers, no slipstream) and the others are see-through.
-	QualiRunUp = 70, -- studs
+	-- bumpers, no slipstream) and the others are see-through. Every circuit
+	-- has at least 140 studs of straight behind the line.
+	QualiRunUp = 110, -- studs
+	QualiLaunchSpeed = 85, -- studs/s (~85 km/h; flat out tops out near 98)
 	GhostTransparency = 0.6,
 	CountdownTime = 5, -- five red lights, one per second
 	FinishGrace = 30, -- after the winner finishes, others get this long
@@ -2750,15 +2753,17 @@ local Hillside = {
 		{ kind = "A", radius = 90, angle = -30, y = 12, name = "Uphill esses" },
 		{ kind = "A", radius = 90, angle = 30, y = 16, name = "Uphill esses" },
 		{ kind = "S", length = 196, y = 27, name = "Hill climb" },
-		-- the sling: a fast right-left flick at the top of the climb, then
-		-- brake for the blind crest
-		{ kind = "A", radius = 85, angle = 28, y = 29, name = "Sling" },
-		{ kind = "A", radius = 85, angle = -28, y = 30, name = "Sling" },
+		-- the sling: a tight right-left flick at the top of the climb, too
+		-- sharp to straight-line (brake to ~72 km/h, tests/tools/cornerreview),
+		-- then brake again for the blind crest
+		{ kind = "A", radius = 35, angle = 70, y = 29, name = "Sling" },
+		{ kind = "A", radius = 35, angle = -70, y = 30, name = "Sling" },
 		{ kind = "S", length = 44, y = 30 },
 		{ kind = "A", radius = 50, angle = 90, y = 32, name = "Crest" },
 		{ kind = "S", length = 174, y = 28 },
-		{ kind = "A", radius = 34, angle = -50, y = 26, name = "Corkscrew" },
-		{ kind = "A", radius = 34, angle = 50, y = 24, name = "Corkscrew" },
+		-- downhill flick: a lift, not flat
+		{ kind = "A", radius = 28, angle = -65, y = 26, name = "Corkscrew" },
+		{ kind = "A", radius = 28, angle = 65, y = 24, name = "Corkscrew" },
 		{ kind = "S", length = 246, y = 24 },
 		{ kind = "A", radius = 45, angle = 180, bank = 12, y = 24, name = "Karussell" },
 		{ kind = "S", length = 251, y = 25 },
@@ -6696,7 +6701,10 @@ local function slotPose(slot: number): (Vector3, Vector3, Vector3)
 	return v3(pos), v3(fwd), v3(up)
 end
 
-local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3, anchored: boolean): Model?
+-- `launch` (studs/s): the kart starts rolling forward at this speed (the
+-- qualifying run-up); it is also set as the kart's "Launch" attribute, which
+-- the driver's client applies once it owns the kart (KartController)
+local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3, anchored: boolean, launch: number?): Model?
 	removeKart(player)
 	-- still loading the circuit: anchored until it has (releaseLoading)
 	heldKart[player] = nil
@@ -6715,7 +6723,14 @@ local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3
 		karts[player] = nil
 		return nil
 	end
+	if launch then
+		model:SetAttribute("Launch", launch)
+	end
 	if not anchored then
+		local c = model.PrimaryPart
+		if launch and c then
+			c.AssemblyLinearVelocity = fwd.Unit * launch
+		end
 		task.defer(KartFactory.handOver, model, player)
 	end
 	return model
@@ -6969,6 +6984,10 @@ local function releaseLoading(p: Player)
 	local k = karts[p]
 	if heldKart[p] and k and k.PrimaryPart and state ~= "Grid" then
 		k.PrimaryPart.Anchored = false
+		local launch = k:GetAttribute("Launch") :: number?
+		if launch then
+			k.PrimaryPart.AssemblyLinearVelocity = k.PrimaryPart.CFrame.LookVector * launch
+		end
 		KartFactory.handOver(k, p)
 	end
 	heldKart[p] = nil
@@ -7142,7 +7161,8 @@ end
 local startGrid: (gridOrder: { Player }) -> ()
 
 -- where one-lap qualifying starts: QualiRunUp studs before the line, in the
--- middle of the road (ghosts, so everyone can start from the same spot)
+-- middle of the road (ghosts, so everyone can start from the same spot),
+-- rolling at QualiLaunchSpeed
 local function runUpPose(): (Vector3, Vector3, Vector3)
 	local pos, fwd, up = TrackLayout.gridSlot(track, 1, { GridFirstRowBack = R.QualiRunUp, GridRowSpacing = 0, GridLateral = 0, GridStagger = 0 })
 	return v3(pos), v3(fwd), v3(up)
@@ -7158,11 +7178,14 @@ local function qualiSlot(player: Player)
 	if racer then
 		pos, fwd, up = q:resetPose(player)
 	end
+	-- a reset on the lap starts from a standstill; a fresh start rolls in
+	local launch: number? = nil
 	if not (pos and fwd and up) then
 		local p3, f3, u3 = runUpPose()
 		pos, fwd, up = vec(p3), vec(f3), vec(u3)
+		launch = R.QualiLaunchSpeed
 	end
-	local model = spawnKart(player, v3(pos :: vector), v3(fwd :: vector), v3(up :: vector), false)
+	local model = spawnKart(player, v3(pos :: vector), v3(fwd :: vector), v3(up :: vector), false, launch)
 	if model and not racer then
 		q:addRacer(player, pos :: vector, now())
 		limits[player] = TrackLimits.newTracker()
@@ -7204,7 +7227,7 @@ local function startQualifying()
 		if slot > R.MaxRacers then
 			break
 		end
-		if spawnKart(p, pos, fwd, up, false) then
+		if spawnKart(p, pos, fwd, up, false, R.QualiLaunchSpeed) then
 			(quali :: RaceProgress.Race):addRacer(p, vec(pos), now())
 			limits[p] = TrackLimits.newTracker()
 			splits[p] = 0
@@ -13327,6 +13350,7 @@ end
 -- its late snapshot does not show yet).
 local CC = Config.Collision
 local kartsFolder: Instance? = nil
+local launched: Model? = nil
 local myPing, pingAge = 0.1, math.huge
 local others: { KartPhysics.Obstacle } = {}
 local otherKarts: { Model } = {} -- same order as `others`
@@ -13402,6 +13426,16 @@ local function physicsStep(dt: number)
 		return
 	end
 	local cf = c.CFrame
+	-- a flying start (qualifying run-up, RaceManager spawnKart): the server set
+	-- the speed before handing the kart over; set it again now that it is ours
+	-- in case the handover lost it (once per kart)
+	local launch = kart:GetAttribute("Launch") :: number?
+	if launch and launched ~= kart then
+		launched = kart
+		if c.AssemblyLinearVelocity:Dot(cf.LookVector) < launch * 0.8 then
+			c.AssemblyLinearVelocity = cf.LookVector * launch
+		end
+	end
 	-- keys ramp the steering in (speed-sensitive), the stick stays analog
 	local forwardSpeed = c.AssemblyLinearVelocity:Dot(cf.LookVector)
 	physControls.throttle = ctrl.throttle

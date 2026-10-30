@@ -268,7 +268,10 @@ local function slotPose(slot: number): (Vector3, Vector3, Vector3)
 	return v3(pos), v3(fwd), v3(up)
 end
 
-local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3, anchored: boolean): Model?
+-- `launch` (studs/s): the kart starts rolling forward at this speed (the
+-- qualifying run-up); it is also set as the kart's "Launch" attribute, which
+-- the driver's client applies once it owns the kart (KartController)
+local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3, anchored: boolean, launch: number?): Model?
 	removeKart(player)
 	-- still loading the circuit: anchored until it has (releaseLoading)
 	heldKart[player] = nil
@@ -287,7 +290,14 @@ local function spawnKart(player: Player, pos: Vector3, fwd: Vector3, up: Vector3
 		karts[player] = nil
 		return nil
 	end
+	if launch then
+		model:SetAttribute("Launch", launch)
+	end
 	if not anchored then
+		local c = model.PrimaryPart
+		if launch and c then
+			c.AssemblyLinearVelocity = fwd.Unit * launch
+		end
 		task.defer(KartFactory.handOver, model, player)
 	end
 	return model
@@ -541,6 +551,10 @@ local function releaseLoading(p: Player)
 	local k = karts[p]
 	if heldKart[p] and k and k.PrimaryPart and state ~= "Grid" then
 		k.PrimaryPart.Anchored = false
+		local launch = k:GetAttribute("Launch") :: number?
+		if launch then
+			k.PrimaryPart.AssemblyLinearVelocity = k.PrimaryPart.CFrame.LookVector * launch
+		end
 		KartFactory.handOver(k, p)
 	end
 	heldKart[p] = nil
@@ -714,7 +728,8 @@ end
 local startGrid: (gridOrder: { Player }) -> ()
 
 -- where one-lap qualifying starts: QualiRunUp studs before the line, in the
--- middle of the road (ghosts, so everyone can start from the same spot)
+-- middle of the road (ghosts, so everyone can start from the same spot),
+-- rolling at QualiLaunchSpeed
 local function runUpPose(): (Vector3, Vector3, Vector3)
 	local pos, fwd, up = TrackLayout.gridSlot(track, 1, { GridFirstRowBack = R.QualiRunUp, GridRowSpacing = 0, GridLateral = 0, GridStagger = 0 })
 	return v3(pos), v3(fwd), v3(up)
@@ -730,11 +745,14 @@ local function qualiSlot(player: Player)
 	if racer then
 		pos, fwd, up = q:resetPose(player)
 	end
+	-- a reset on the lap starts from a standstill; a fresh start rolls in
+	local launch: number? = nil
 	if not (pos and fwd and up) then
 		local p3, f3, u3 = runUpPose()
 		pos, fwd, up = vec(p3), vec(f3), vec(u3)
+		launch = R.QualiLaunchSpeed
 	end
-	local model = spawnKart(player, v3(pos :: vector), v3(fwd :: vector), v3(up :: vector), false)
+	local model = spawnKart(player, v3(pos :: vector), v3(fwd :: vector), v3(up :: vector), false, launch)
 	if model and not racer then
 		q:addRacer(player, pos :: vector, now())
 		limits[player] = TrackLimits.newTracker()
@@ -776,7 +794,7 @@ local function startQualifying()
 		if slot > R.MaxRacers then
 			break
 		end
-		if spawnKart(p, pos, fwd, up, false) then
+		if spawnKart(p, pos, fwd, up, false, R.QualiLaunchSpeed) then
 			(quali :: RaceProgress.Race):addRacer(p, vec(pos), now())
 			limits[p] = TrackLimits.newTracker()
 			splits[p] = 0

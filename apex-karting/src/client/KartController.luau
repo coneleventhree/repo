@@ -213,6 +213,7 @@ end
 -- its late snapshot does not show yet).
 local CC = Config.Collision
 local kartsFolder: Instance? = nil
+local launched: Model? = nil
 local myPing, pingAge = 0.1, math.huge
 local others: { KartPhysics.Obstacle } = {}
 local otherKarts: { Model } = {} -- same order as `others`
@@ -288,6 +289,16 @@ local function physicsStep(dt: number)
 		return
 	end
 	local cf = c.CFrame
+	-- a flying start (qualifying run-up, RaceManager spawnKart): the server set
+	-- the speed before handing the kart over; set it again now that it is ours
+	-- in case the handover lost it (once per kart)
+	local launch = kart:GetAttribute("Launch") :: number?
+	if launch and launched ~= kart then
+		launched = kart
+		if c.AssemblyLinearVelocity:Dot(cf.LookVector) < launch * 0.8 then
+			c.AssemblyLinearVelocity = cf.LookVector * launch
+		end
+	end
 	-- keys ramp the steering in (speed-sensitive), the stick stays analog
 	local forwardSpeed = c.AssemblyLinearVelocity:Dot(cf.LookVector)
 	physControls.throttle = ctrl.throttle

@@ -189,9 +189,14 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   touches the corkscrew straight); (3) BankSmoothing 40: a fast bank twist (22) rocked the rigid
   kart onto two wheels and at 20 fps the sim went NaN; 15 deg at the Karussell made the 20 fps
   autopilot spin, 12 deg is fine. tests/tools/bank.luau: 12.6 m hairpin 54 km/h flat -> 65 at 12 deg.
-- Hillside v2 (user, Oct 28 2026, approved from a before/after preview): "Sling" = right-left kink
-  r 85 +-28 deg at the top of the Hill climb (straight B), 44 studs before the Crest (autopilot
-  76 km/h with a slight lift: committed but not flat for a keyboard); "Long sweeper" = one 180 deg
+- Hillside v2 (user, Oct 28 2026, approved from a before/after preview): "Sling" = right-left flick
+  at the top of the Hill climb (straight B), 44 studs before the Crest. Was r 85 +-28 deg, but the
+  user found it could be taken flat (Oct 30: "속도 안줄이고 그냥 대충 지나갈수있어"): its jog was
+  ~20 studs on a 33-stud road, straight-lineable. Now r 35 +-70 deg (brake 88 -> ~72 km/h on the
+  ideal line); Corkscrew r 34 +-50 (flat) -> r 28 +-65 (a lift). Judge corners with
+  `luau tests/tools/cornerreview.luau [-a "Id Name=r,angle"]` (converged min-curvature line over
+  the whole road + point-mass speeds: FLAT / lift / brake per named corner) -- the autopilot
+  follows the centreline, so it calls straight-lineable corners hard; "Long sweeper" = one 180 deg
   r 72 bank 6 corner replacing the two 90 deg Last corners (65-69 km/h, steering held ~3 s). The
   back straight rose to y 2 (bank 6 put the inside band under the lawn at y 1). Design with
   `tests/tools/speedmap.luau -a <id>` + `speedmap.py` (autopilot speed per sample, corner minima).
@@ -303,8 +308,11 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   starts quickly") -> Intermission (race server) / Lobby (a room's waiting room, all NOT READY).
 - Qualifying is ONE timed lap with ghosts (user's choice, Oct 28 2026; it replaced the earlier
   "no ghosts" timed session): everyone spawns at the same run-up pose (gridSlot with
-  GridFirstRowBack = QualiRunUp 70, no lateral/stagger), quali = RaceProgress session with laps = 1
-  (the lap is timed from the line: rolling start), "finish" = the lap is in -> player attribute
+  GridFirstRowBack = QualiRunUp 110, no lateral/stagger) ROLLING at QualiLaunchSpeed 85 (flying lap,
+  user's ask Oct 30 2026: cross the line near top speed; every circuit has >= 140 studs of straight
+  behind the line; spawnKart(..., launch) sets the velocity + kart attribute "Launch", re-applied
+  once by KartController after the handover and by releaseLoading; a reset on the lap = standstill),
+  quali = RaceProgress session with laps = 1 (the lap is timed from the line), "finish" = the lap is in -> player attribute
   QualiDone + QualiDone event {best, place}. Over when everyone is done (q:allDone) or at the
   track's `Qualifying` seconds (chequered flag: finish the lap, at most QualiOvertime). A deleted
   lap = no time = back of the grid. Workspace attribute Ghost = (state == Qualifying):

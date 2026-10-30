@@ -206,10 +206,13 @@ Config.Race = {
 	QualifyingTime = 120, -- default; tracks set their own (TrackData Qualifying)
 	QualiOvertime = 90, -- at most this long to finish the lap after the flag
 	-- Qualifying is one timed lap with ghosts (user's choice): everyone starts
-	-- together this far before the line, picks up speed, and the lap is timed
+	-- together this far before the line, already rolling at QualiLaunchSpeed
+	-- (a flying lap: the line is crossed near top speed), and the lap is timed
 	-- from the line round to the line. Karts pass through each other (no
-	-- bumpers, no slipstream) and the others are see-through.
-	QualiRunUp = 70, -- studs
+	-- bumpers, no slipstream) and the others are see-through. Every circuit
+	-- has at least 140 studs of straight behind the line.
+	QualiRunUp = 110, -- studs
+	QualiLaunchSpeed = 85, -- studs/s (~85 km/h; flat out tops out near 98)
 	GhostTransparency = 0.6,
 	CountdownTime = 5, -- five red lights, one per second
 	FinishGrace = 30, -- after the winner finishes, others get this long
