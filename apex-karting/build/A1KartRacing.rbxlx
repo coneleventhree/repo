@@ -2750,20 +2750,23 @@ local Hillside = {
 		{ kind = "S", length = 209, width = 33 },
 		{ kind = "A", radius = 55, angle = 90, width = 32, name = "Turn 1" },
 		{ kind = "S", length = "free", y = 8 },
-		{ kind = "A", radius = 90, angle = -30, y = 12, name = "Uphill esses" },
-		{ kind = "A", radius = 90, angle = 30, y = 16, name = "Uphill esses" },
-		{ kind = "S", length = 196, y = 27, name = "Hill climb" },
-		-- the sling: a tight right-left flick at the top of the climb, too
-		-- sharp to straight-line (brake to ~72 km/h, tests/tools/cornerreview),
-		-- then brake again for the blind crest
-		{ kind = "A", radius = 35, angle = 70, y = 29, name = "Sling" },
-		{ kind = "A", radius = 35, angle = -70, y = 30, name = "Sling" },
+		-- the sling at the foot of the hill: a tight right-left flick, too
+		-- sharp to straight-line (brake to ~73 km/h, tests/tools/cornerreview;
+		-- the old r 85 +-28 jog at the top of the climb was taken flat). Down
+		-- here, not up the hill: the inside of so tight a corner on a tall
+		-- embankment left cliffs in the grass (TrackLayout.pockets).
+		{ kind = "A", radius = 35, angle = 70, y = 9, name = "Sling" },
+		{ kind = "A", radius = 65, angle = -70, y = 10, name = "Sling" },
+		-- the esses step left as far as the Sling steps right (52 deg), so
+		-- the rest of the lap stays where it was
+		{ kind = "A", radius = 90, angle = -52, y = 14, name = "Uphill esses" },
+		{ kind = "A", radius = 90, angle = 52, y = 19, name = "Uphill esses" },
+		{ kind = "S", length = 130, y = 29, name = "Hill climb" },
 		{ kind = "S", length = 44, y = 30 },
 		{ kind = "A", radius = 50, angle = 90, y = 32, name = "Crest" },
 		{ kind = "S", length = 174, y = 28 },
-		-- downhill flick: a lift, not flat
-		{ kind = "A", radius = 28, angle = -65, y = 26, name = "Corkscrew" },
-		{ kind = "A", radius = 28, angle = 65, y = 24, name = "Corkscrew" },
+		{ kind = "A", radius = 34, angle = -50, y = 26, name = "Corkscrew" },
+		{ kind = "A", radius = 34, angle = 50, y = 24, name = "Corkscrew" },
 		{ kind = "S", length = 246, y = 24 },
 		{ kind = "A", radius = 45, angle = 180, bank = 12, y = 24, name = "Karussell" },
 		{ kind = "S", length = 251, y = 25 },
