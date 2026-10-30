@@ -129,7 +129,19 @@ for _, trackId in TrackData.Order do
 	end
 	check(worstBand > 3, string.format("run-off/gravel/turf stay %.1f studs clear of other track", worstBand))
 	check(runoffs > 40, string.format("painted run-off outside tight corners (%d sample sides)", runoffs))
-	check(gravels > 10, string.format("gravel trap at the hairpin (%d sample sides)", gravels))
+	-- gravel goes outside corners tighter than r 50 (the beginner circuits
+	-- have none: no gravel there)
+	local tightest = math.huge
+	for _, seg in spec.Segments do
+		if seg.kind == "A" then
+			tightest = math.min(tightest, seg.radius)
+		end
+	end
+	if tightest < 48 then
+		check(gravels > 10, string.format("gravel trap at the hairpin (%d sample sides)", gravels))
+	else
+		check(gravels == 0, string.format("no hairpin (tightest r %.0f), no gravel (%d sample sides)", tightest, gravels))
+	end
 
 	-- a figure of eight: the bridge and the road under it
 	local crossings = TrackLayout.crossings(layoutGround)

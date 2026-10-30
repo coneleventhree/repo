@@ -566,9 +566,9 @@ end
 -- is a vote for the next race (the server counts them), with the race length
 -- and the READY button
 ----------------------------------------------------------------------------
--- cards sit two to a row (five circuits and counting)
-local CARD_W, CARD_H, CARD_GAP = 228, 62, 6
-local PANEL_W = CARD_W * 2 + CARD_GAP
+-- cards sit three to a row (eleven circuits: two a row ran off a phone screen)
+local CARD_W, CARD_H, CARD_GAP, CARD_COLS = 228, 62, 6, 3
+local PANEL_W = CARD_W * CARD_COLS + CARD_GAP * (CARD_COLS - 1)
 local cardGrid: Frame
 
 local function trackIds(): { string }
@@ -664,7 +664,7 @@ local function buildTrackPanel()
 	local gridLayout = Instance.new("UIGridLayout")
 	gridLayout.CellSize = UDim2.fromOffset(CARD_W, CARD_H)
 	gridLayout.CellPadding = UDim2.fromOffset(CARD_GAP, CARD_GAP)
-	gridLayout.FillDirectionMaxCells = 2
+	gridLayout.FillDirectionMaxCells = CARD_COLS
 	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	gridLayout.Parent = cardGrid
 	-- race length: three buttons with the vote counts
@@ -1317,8 +1317,8 @@ function Hud.init(remotes: Folder)
 		-- banner: down the left it covered the steering buttons
 		trackPanel.Position = UDim2.fromOffset(0, 58)
 	else
-		-- in the middle under the banner too: nine cards in two columns are
-		-- too tall for the space under the lap times
+		-- in the middle under the banner too: the cards are too many for the
+		-- space under the lap times
 		trackPanel.Position = UDim2.fromOffset(0, 118)
 	end
 

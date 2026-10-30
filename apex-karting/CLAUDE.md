@@ -2,7 +2,7 @@
 (Formerly "Apex Karting"; renamed by the user. The DataStore name ApexKarting_v1 stays so saved
 bests survive. The repo folder is still apex-karting.)
 
-Roblox kart racer (realistic physics, players only, no items, nine tracks; Hillside has hills and banking,
+Roblox kart racer (realistic physics, players only, no items, eleven tracks (two beginner circuits); Hillside has hills and banking,
 Suzuka is a 3D figure of eight with a bridge, Catalunya / Zandvoort / Yas Marina are real GP circuits with real heights;
 lobby menu with RACE matchmaking / PRACTICE / PRIVATE ROOM and a loading screen). Rojo project.
 Made for playing with friends: no anti-cheat / anti-troll work (the user said so).
@@ -172,6 +172,11 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   and angles least-squares fitted so segment ends land on the real line (mean ~4 studs).
   Min radius 30. Racing-line lap ~79 s; physics_test autopilot (centre line) ~84 s
   (scratch trackdb/laptime.py; DA / PPM env vars set the engine).
+- Beginner circuits Rookie Ring / Meadow Park (user, Oct 30 2026: "make two circuits for beginners"),
+  first in TrackData.Order: flat, roads 40-44 wide, no corner under r 55 (so no gravel: zones() puts
+  gravel outside r < 50 only; layout_test expects none there), 0.53 / 0.59 km, laps 3/4/6,
+  Qualifying 90. cornerreview: brakes only into Turn 1 / Turn 4 / Oak bend (60-77 km/h), the rest
+  flat or a lift. Meadow has Trees and the Morning sky.
 - Corner review pass (user, Oct 30 2026: "review the maps, corners you can take flat"; then "do them
   all"), judged with tests/tools/cornerreview.luau: Harbour Chicane r 40 +-40 -> 28 +-70, Tampines
   Chicane r 50 +-40 -> 30 +-68 (both had been straight-lined flat), Lakeside Last corner r 90 -> 55
@@ -310,8 +315,10 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   "Track") shows the LoadingGui until rays find the floor under the character and the grid road at
   (-40, 0) in workspace.Circuit (TrackId = new id), min 0.8 s, then Request "TrackLoaded" -> releaseLoading.
   The e2e bot answers "Track" with TrackLoaded itself.
-- Menus with nine tracks: Menu practice cards are 3 x 3 (CARD_H 100), the HUD track panel sits centred
-  under the banner on desktop too (it ran off the bottom down the left), number keys 1-9.
+- Menus with eleven tracks: Menu practice / room cards are a ScrollingFrame "Cards" (3 a row, 3 rows in
+  view, AutomaticCanvasSize Y; CARD_H 100), the HUD track panel is 3 cards a row (2 a row ran off a phone)
+  and sits centred under the banner on desktop too (it ran off the bottom down the left), number keys 1-9
+  (cards 10+ by click).
 - Mock note: a static part that leaves and re-enters workspace keeps its ray-index entry
   (fixed in tests/mock/roblox.luau; before, it became "dynamic" and rays crawled). Likewise
   parts placed while outside workspace (circuits built into ServerStorage after the ray index
@@ -391,7 +398,7 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
 - Client: Menu.luau (ScreenGui "Menu": Home, Practice cards (TrackOutline thumbnails, Best_<id>
   player attributes / Record_<id> workspace attributes from Stats), Queue, Room (code TextBox,
   digits only), Records, RoomLobby (Code, PlayersTitle, Slot1..12 {PlayerName, Status, Kick
-  (tap twice, KickConfirm)}, Track {TrackName, Info}, Change (host: opens RoomTracks, the 3 x 3 practice-style cards, Card_<id>, Back) or HostPicks, Len_<length>,
+  (tap twice, KickConfirm)}, Track {TrackName, Info}, Change (host: opens RoomTracks, the practice-style card grid, Card_<id>, Back) or HostPicks, Len_<length>,
   Leave, Status, Action = READY / NOT READY / START RACE), Error, NowShowing, LobbyButton (press
   twice within LobbyConfirm), fly-by camera bound at Camera+5 in the lobby and the waiting room).
   Child labels must not be called "Name" (the property wins: `slot.Name`). SettingsMenu button

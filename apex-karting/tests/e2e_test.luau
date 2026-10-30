@@ -1030,13 +1030,13 @@ do
 	end
 	check(hud().Tracks.Visible and cards == #TrackData.Order, string.format("M opens the track panel (%d cards)", cards))
 	check(hud().Tracks.Cards.Card_Tampines.Tag.Text == "NOW", "current track marked NOW")
-	G.pressKey("Two")
+	G.pressKey("Four")
 	G.run(0.2)
-	G.releaseKey("Two")
+	G.releaseKey("Four")
 	local switched = G.run(5, function()
 		return ws:GetAttribute("Track") == "Silverstone"
 	end)
-	check(switched, "key 2 switches practice to Silverstone")
+	check(switched, "key 4 switches practice to Silverstone")
 	-- held in the new paddock under a loading screen until this client has
 	-- the circuit (it used to fall through ground that had not arrived)
 	local root = A.Character and A.Character:FindFirstChild("HumanoidRootPart")
@@ -1075,16 +1075,16 @@ do
 	G.pressKey("M")
 	G.run(0.2)
 	G.releaseKey("M")
-	G.pressKey("One")
+	G.pressKey("Three")
 	G.run(0.2)
-	G.releaseKey("One")
+	G.releaseKey("Three")
 	local back = G.run(5, function()
 		return ws:GetAttribute("Track") == "Tampines"
 	end)
 	G.run(5, function()
 		return kartOf(A) ~= nil and KC.isDriving()
 	end)
-	check(back and ws.Circuit:GetAttribute("TrackId") == "Tampines", "key 1 switches back")
+	check(back and ws.Circuit:GetAttribute("TrackId") == "Tampines", "key 3 switches back")
 	check(A:GetAttribute("PersonalBest") == pbFirst and ws:GetAttribute("TrackRecord") == recFirst, "first track's best lap and record come back")
 	noErrors("track switching")
 
@@ -1095,9 +1095,9 @@ do
 	G.pressKey("M")
 	G.run(0.2)
 	G.releaseKey("M")
-	G.pressKey("Five")
+	G.pressKey("Seven")
 	G.run(0.2)
-	G.releaseKey("Five")
+	G.releaseKey("Seven")
 	local harbour = G.run(5, function()
 		return ws:GetAttribute("Track") == "Harbour"
 	end)
@@ -1105,7 +1105,7 @@ do
 		return kartOf(A) ~= nil and KC.isDriving()
 	end)
 	G.run(0.5)
-	check(harbour and ws.Circuit:GetAttribute("TrackId") == "Harbour", "key 5 switches practice to the Harbour Circuit")
+	check(harbour and ws.Circuit:GetAttribute("TrackId") == "Harbour", "key 7 switches practice to the Harbour Circuit")
 	check(lighting.ClockTime > 7 and lighting.ClockTime < 11 and lighting.Brightness >= 2, string.format("morning there (clock %.1f, brightness %.1f)", lighting.ClockTime, lighting.Brightness))
 	local nightTracks = {}
 	for _, id in TrackData.Order do
@@ -1126,9 +1126,9 @@ do
 	G.pressKey("M")
 	G.run(0.2)
 	G.releaseKey("M")
-	G.pressKey("Four")
+	G.pressKey("Six")
 	G.run(0.2)
-	G.releaseKey("Four")
+	G.releaseKey("Six")
 	local hill = G.run(5, function()
 		return ws:GetAttribute("Track") == "Hillside"
 	end)
@@ -1136,7 +1136,7 @@ do
 		return kartOf(A) ~= nil and KC.isDriving()
 	end)
 	G.run(0.5)
-	check(hill and ws.Circuit:GetAttribute("TrackId") == "Hillside", "key 4 switches practice to Hillside Raceway")
+	check(hill and ws.Circuit:GetAttribute("TrackId") == "Hillside", "key 6 switches practice to Hillside Raceway")
 	check(math.abs(lighting.ClockTime - 14.6) < 0.01, "back in daylight")
 	checkGeometry("Hillside Raceway", true)
 	local top = 0

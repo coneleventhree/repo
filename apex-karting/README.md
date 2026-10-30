@@ -1,9 +1,11 @@
 # A1 Kart Racing
 
-리얼 물리 기반 Roblox 고카트 레이싱 게임이에요. 플레이어끼리만 레이스하고, 아이템은 없어요. 트랙은 9개예요. 접속하면 로딩 화면 → 메인 메뉴(로비)에서 **RACE**(다른 플레이어와 빠른 매칭), **PRACTICE**(맵을 골라 혼자 연습), **PRIVATE ROOM**(친구와 4자리 방 코드)을 골라요. 레이스 한 라운드는 트랙·길이 투표 → 1랩 고스트 퀄리파잉(예선) → 그리드 → 레이스 → 짧은 포디움 순서로 돌아가요.
+리얼 물리 기반 Roblox 고카트 레이싱 게임이에요. 플레이어끼리만 레이스하고, 아이템은 없어요. 트랙은 11개예요(초보자용 2개 포함). 접속하면 로딩 화면 → 메인 메뉴(로비)에서 **RACE**(다른 플레이어와 빠른 매칭), **PRACTICE**(맵을 골라 혼자 연습), **PRIVATE ROOM**(친구와 4자리 방 코드)을 골라요. 레이스 한 라운드는 트랙·길이 투표 → 1랩 고스트 퀄리파잉(예선) → 그리드 → 레이스 → 짧은 포디움 순서로 돌아가요.
 
 | 트랙 | 길이 | 랩 | 성격 |
 |---|---|---|---|
+| Rookie Ring | 1,895 studs (약 0.53 km) | 3 / 4 / 6 | **초보자용**: 넓은 도로(44 studs), 헤어핀 없는 완만한 코너 5개, 자갈 없음 |
+| Meadow Park | 2,124 studs (약 0.59 km) | 3 / 4 / 6 | **초보자용**: 넓은 도로(40~42 studs), 완만한 S자와 긴 오른쪽 코너, 소나무 숲, 아침 |
 | Tampines Ring | 2,500 studs (약 0.7 km) | 짧게 2 / 보통 3 / 길게 5 | 카트 전용 서킷, 타이트하고 테크니컬 |
 | Silverstone | 5,689 studs (약 1.6 km) | 짧게 1 / 보통 2 / 길게 3 | 실제 F1 실버스톤 GP 레이아웃, 고속 코너 위주 |
 | Lakeside International | 3,680 studs (약 1.03 km) | 2 / 3 / 5 | 국제 대회형 카트 서킷, 빠르고 흐르는 코너, 서킷 옆 호수 |
@@ -100,7 +102,7 @@ Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언�
 
 1. Roblox Studio → File → Open from File → [`build/A1KartRacing.rbxlx`](build/A1KartRacing.rbxlx)
 2. **혼자 테스트**: Play(F5) → 메인 메뉴. PRACTICE → 트랙 고르고 DRIVE → 이 서버가 연습 모드로 바뀌고 카트에 앉아요. 랩 타임이 기록돼요.
-   연습 중에 **M**(또는 화면의 TRACK 버튼)을 누르고 트랙 카드를 클릭하거나 숫자 **1~9**를 누르면 바로 그 트랙으로 바뀌어요(패널 카드 오른쪽 위 숫자, 지금 트랙이 1번). LOBBY 두 번 → 메뉴로.
+   연습 중에 **M**(또는 화면의 TRACK 버튼)을 누르고 트랙 카드를 클릭하거나 숫자 **1~9**를 누르면 바로 그 트랙으로 바뀌어요(패널 카드 오른쪽 위 숫자; 10번째부터는 카드 클릭). LOBBY 두 번 → 메뉴로.
    PRIVATE ROOM → CREATE A ROOM → 대기실에서 START RACE로 혼자 퀄리·레이스까지 해볼 수 있어요. (Studio에서 KICK은 그 플레이어 창을 끊어요: 서버가 하나뿐이라 로비로 보낼 곳이 없어서요.)
 3. **2인 레이스 테스트**: Test 탭 → Clients and Servers → Players를 2로 → Start. 한 명이 RACE를 누르면(Studio라 7초 뒤) 서버가 레이스 모드로 바뀌고 둘 다 들어가요.
    2명이 되면 20초 대기(트랙·길이 투표, 모두 READY를 누르면 3초로 줄어듦) → 1랩 고스트 퀄리파잉 → 그리드 → 빨간 불 5개 → 소등(GO) → 랩 → 포디움 8초 → 다음 라운드 순서로 진행돼요.
@@ -372,7 +374,7 @@ tools/design/ 서킷 설계·미리보기·홍보 이미지용 파이썬 스크�
 Luau CLI와 Rojo가 있으면 프로젝트 폴더에서:
 
 ```bash
-luau tests/physics_test.luau     # 물리 + 아홉 트랙 자동 주행 랩(승차감 포함, 60/20 fps) + 뱅크 헤어핀 190개
+luau tests/physics_test.luau     # 물리 + 전체 트랙 자동 주행 랩(승차감 포함, 60/20 fps) + 뱅크 헤어핀 190개
 luau tests/collision_test.luau   # 카트끼리 추돌·정면·측면·T자·모서리·네트워크 지연·저프레임·슬립스트림·다리 위아래 카트·지연 충돌 보정 40개
 luau tests/limits_test.luau      # 트랙 리밋 판정·위치 추적·섹터·무효 랩·체커기 22개
 luau tests/tools/bumps.luau      # 범퍼 반응 표 (-a "Stiffness SpringMax Damping MaxAccel"로 다른 값 비교)
@@ -382,7 +384,7 @@ luau tests/steering_test.luau    # 키보드 조향 램프·언더스티어·키
 luau tests/camera_test.luau      # 1인칭 화면 반동·수평 흔들림·머리 쏠림 10개
 luau tests/tools/turnin.luau     # 키를 눌렀을 때 핸들·요(yaw) 반응 표 (스무딩 켬/끔 비교)
 luau tests/race_test.luau        # 랩·순위(페널티 포함)·지름길 18개
-luau tests/layout_test.luau      # 아홉 서킷 배치 + 언덕·둑 + 도로 접힘 + Suzuka 다리(높이·옹벽·둑) + 피트 위치(반시계 서킷은 오른쪽) 185개
+luau tests/layout_test.luau      # 전체 서킷 배치 + 언덕·둑 + 도로 접힘 + Suzuka 다리(높이·옹벽·둑) + 피트 위치(반시계 서킷은 오른쪽) 217개
 luau tests/tools/crossing.luau -a Suzuka   # 입체교차: 다리 구간, 다리 밑 높이, 옹벽 위치·높이
 luau tests/tools/ride.luau -a "Hillside 60"   # 승차감: 한 바퀴 동안 차체 떨림(피치·롤 흔들림) 측정, plain = 예전 도로와 비교
 luau tests/tools/speedmap.luau -a Hillside > hs.csv && python3 tests/tools/speedmap.py hs.csv hs.png   # 자동 주행 속도 지도(코너별 최저 속도, 높이, 스로틀·핸들) — 코너 설계용

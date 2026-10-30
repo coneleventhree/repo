@@ -715,10 +715,75 @@ local YasMarina = {
 	} :: { any },
 }
 
+-- Two beginner circuits (user, Oct 30 2026: "make two circuits for
+-- beginners"): flat, wide roads (40-44 studs, the kart circuits are 32-36),
+-- no hairpins, every corner r 55 or more with a gentle lift or brake at most,
+-- and laps under 0.6 km so a lap is quick to learn.
+local Rookie = {
+	Id = "Rookie",
+	Name = "Rookie Ring",
+	Blurb = "Beginner circuit - wide road, five easy corners",
+	Laps = 4,
+	Lengths = { 3, 4, 6 },
+	Qualifying = 90,
+	Spacing = 6,
+	Smoothing = 10,
+	BankSmoothing = 22,
+	CornerBoards = true,
+	Segments = {
+		{ kind = "S", length = 250, width = 44, name = "Start straight" },
+		{ kind = "A", radius = 70, angle = 90, width = 42, name = "Turn 1" },
+		{ kind = "S", length = 200 },
+		{ kind = "A", radius = 90, angle = 60, name = "Turn 2" },
+		{ kind = "S", length = 100 },
+		{ kind = "A", radius = 90, angle = 30, name = "Turn 3" },
+		{ kind = "S", length = 380 },
+		{ kind = "A", radius = 65, angle = 90, name = "Turn 4" },
+		{ kind = "S", length = "free", name = "Back straight" },
+		{ kind = "A", radius = 75, angle = 90, name = "Turn 5" },
+		{ kind = "S", length = "free", width = 44 },
+	} :: { any },
+}
+
+local Meadow = {
+	Id = "Meadow",
+	Name = "Meadow Park",
+	Blurb = "Beginner circuit - gentle esses among the pines",
+	Laps = 4,
+	Lengths = { 3, 4, 6 },
+	Qualifying = 90,
+	Spacing = 6,
+	Smoothing = 10,
+	BankSmoothing = 22,
+	Sky = "Morning",
+	CornerBoards = true,
+	Trees = true,
+	Segments = {
+		{ kind = "S", length = 230, width = 42, name = "Start straight" },
+		{ kind = "A", radius = 60, angle = 90, width = 40, name = "Turn 1" },
+		{ kind = "S", length = 200 },
+		{ kind = "A", radius = 100, angle = -45, name = "Esses" },
+		{ kind = "A", radius = 100, angle = 45, name = "Esses" },
+		{ kind = "S", length = 100 },
+		{ kind = "A", radius = 55, angle = 120, name = "Oak bend" },
+		{ kind = "S", length = 380 },
+		{ kind = "A", radius = 150, angle = -20, name = "Kink" },
+		{ kind = "S", length = 140 },
+		{ kind = "A", radius = 120, angle = 80, name = "Long right" },
+		{ kind = "S", length = "free" },
+		{ kind = "A", radius = 60, angle = 60, name = "Turn 6" },
+		{ kind = "S", length = 80 },
+		{ kind = "A", radius = 70, angle = 30, name = "Last corner" },
+		{ kind = "S", length = "free", width = 42 },
+	} :: { any },
+}
+
 local TrackData = {
 	Default = "Tampines",
-	Order = { "Tampines", "Silverstone", "Lakeside", "Hillside", "Harbour", "Suzuka", "Catalunya", "Zandvoort", "YasMarina" },
+	Order = { "Rookie", "Meadow", "Tampines", "Silverstone", "Lakeside", "Hillside", "Harbour", "Suzuka", "Catalunya", "Zandvoort", "YasMarina" },
 	Tracks = {
+		Rookie = Rookie,
+		Meadow = Meadow,
 		Tampines = Tampines,
 		Silverstone = Silverstone,
 		Lakeside = Lakeside,

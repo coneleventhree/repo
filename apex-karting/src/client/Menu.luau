@@ -303,7 +303,7 @@ local function buildHome()
 	nowShowing.TextStrokeTransparency = 0.5
 end
 
--- three rows of three: room for nine tracks in the panel
+-- three cards a row, three rows in view; more scroll
 local CARD_W, CARD_H = 238, 100
 -- `registry`: where the card is kept by id; `onPick`: what a click does
 local function buildCard(parent: Instance, id: string, registry: { [string]: TextButton }, onPick: (string) -> ()): TextButton
@@ -345,13 +345,20 @@ local function buildCard(parent: Instance, id: string, registry: { [string]: Tex
 	return card
 end
 
--- a 3 x 3 grid of track cards in panel `p` (the practice and room pickers)
+-- a grid of track cards in panel `p` (the practice and room pickers): three
+-- a row, three rows in view, the rest a scroll away
 local function cardGrid(p: Frame, registry: { [string]: TextButton }, onPick: (string) -> ())
-	local grid = Instance.new("Frame")
+	local grid = Instance.new("ScrollingFrame")
 	grid.Name = "Cards"
-	grid.Size = UDim2.fromOffset(746, 320) -- three cards a row (742) and a little spare
+	grid.Size = UDim2.fromOffset(756, 320) -- three cards a row (742) and the scroll bar
 	grid.Position = UDim2.fromOffset(24, 60)
 	grid.BackgroundTransparency = 1
+	grid.BorderSizePixel = 0
+	grid.ScrollBarThickness = 6
+	grid.ScrollBarImageColor3 = ACCENT
+	grid.ScrollingDirection = Enum.ScrollingDirection.Y
+	grid.CanvasSize = UDim2.new()
+	grid.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	grid.Parent = p
 	local layout = Instance.new("UIGridLayout")
 	layout.CellSize = UDim2.fromOffset(CARD_W, CARD_H)
