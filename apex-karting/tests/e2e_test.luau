@@ -1156,9 +1156,9 @@ do
 	G.pressKey("M")
 	G.run(0.2)
 	G.releaseKey("M")
-	G.pressKey("One")
+	G.pressKey("Three")
 	G.run(0.2)
-	G.releaseKey("One")
+	G.releaseKey("Three")
 	G.run(5, function()
 		return ws:GetAttribute("Track") == "Tampines"
 	end)
