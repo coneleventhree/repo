@@ -4,11 +4,11 @@
 
 | 트랙 | 길이 | 랩 | 성격 |
 |---|---|---|---|
-| Tampines Ring | 2,484 studs (약 0.7 km) | 짧게 2 / 보통 3 / 길게 5 | 카트 전용 서킷, 타이트하고 테크니컬 |
-| Silverstone | 5,858 studs (약 1.6 km) | 짧게 1 / 보통 2 / 길게 3 | 실제 F1 실버스톤 GP 레이아웃, 고속 코너 위주 |
-| Lakeside International | 3,665 studs (약 1.03 km) | 2 / 3 / 5 | 국제 대회형 카트 서킷, 빠르고 흐르는 코너, 서킷 옆 호수 |
+| Tampines Ring | 2,500 studs (약 0.7 km) | 짧게 2 / 보통 3 / 길게 5 | 카트 전용 서킷, 타이트하고 테크니컬 |
+| Silverstone | 5,689 studs (약 1.6 km) | 짧게 1 / 보통 2 / 길게 3 | 실제 F1 실버스톤 GP 레이아웃, 고속 코너 위주 |
+| Lakeside International | 3,680 studs (약 1.03 km) | 2 / 3 / 5 | 국제 대회형 카트 서킷, 빠르고 흐르는 코너, 서킷 옆 호수 |
 | Hillside Raceway | 3,817 studs (약 1.07 km) | 2 / 3 / 5 | 언덕 서킷: 오르막·내리막(높이차 약 8.8 m), 언덕 아래 급한 우-좌 S자(Sling), 뱅크 코너 3개, 핸들을 계속 잡고 도는 긴 고속 코너, 소나무 |
-| Harbour Circuit | 3,110 studs (약 0.87 km) | 2 / 3 / 5 | 아침 항구, 부두를 따라 선 가로등, 긴 대각선 직선과 깊은 헤어핀 |
+| Harbour Circuit | 3,106 studs (약 0.87 km) | 2 / 3 / 5 | 아침 항구, 부두를 따라 선 가로등, 긴 대각선 직선과 깊은 헤어핀 |
 | Suzuka | 4,645 studs (약 1.3 km) | 1 / 2 / 3 | 실제 스즈카 GP 레이아웃을 3D로: 8자 입체교차(다리), 높이차 약 9 m, S자·데그너·헤어핀·스푼·130R·시케인 |
 | Catalunya | 3,161 studs (약 0.89 km) | 2 / 3 / 5 | 스페인 GP(바르셀로나): 긴 오른쪽 Turn 3, 언덕을 오르내리는 레이아웃, 빠른 마지막 코너 |
 | Zandvoort | 3,114 studs (약 0.87 km) | 2 / 3 / 5 | 네덜란드 GP: 모래언덕 위아래, 뱅크 코너 2개(Hugenholtz 헤어핀, 마지막 Arie Luyendyk) |
@@ -47,7 +47,7 @@ Hillside, Suzuka와 GP 서킷 3개(Catalunya, Zandvoort, Yas Marina)에는 언�
 
 - 실제 실버스톤 GP 레이아웃(2011년~, 시계 방향, 18개 코너)을 실제 중심선 데이터에 맞춰 그렸어요. 1 stud = 실제 1 m 비율(실물의 28% 크기)이라 코너 각도·순서·간격이 실제와 같고, 코너 경계가 실제 선에서 평균 4 studs 안에 들어와요.
 - 카트 도로 폭(32~36 studs)에 맞추려고 아주 느린 코너(The Loop, Vale)만 반지름을 최소 30 studs로 넓혔어요.
-- 좋은 라인으로 달릴 때 속도 예상치(km/h): Abbey 78 · Farm 82 · Village 37 · The Loop 32 · Aintree 54 · Brooklands 54 · Luffield 44 · Woodcote 62~72 · **Copse 85 (코너 한계와 거의 같음) · Maggotts 91 (풀 스로틀) · Becketts 92 → 64 · Chapel 70 · Stowe 66** · Vale 50 · Club 50~60. 이상적인 랩 약 79초, 가운데로만 달리면 약 84초예요. 어느 직선에서도 최고 속도 제한(100 km/h)에 닿지 않아서, 코너 탈출 속도가 다음 코너까지 그대로 이어져요.
+- 좋은 라인으로 달릴 때 속도 예상치(km/h): Abbey 78 · Farm 82 · Village 37 · The Loop 32 · Aintree 54 · Brooklands 54 · Luffield 44 · Woodcote 62~72 · **Copse 85 (코너 한계와 거의 같음) · Maggotts 96 (풀 스로틀) · Becketts 92 → 83 → 58 (실제의 0.6배 크기로 조여서 살짝 떼고, 브레이크, 느린 마지막 코너) · Chapel 67 · Stowe 66** · Vale 50 · Club 50~60. 이상적인 랩 약 79초, 가운데로만 달리면 약 84초예요. 어느 직선에서도 최고 속도 제한(100 km/h)에 닿지 않아서, 코너 탈출 속도가 다음 코너까지 그대로 이어져요.
 - Hamilton Straight에 그리드·피트, 피트 위에 날개 모양 지붕(The Wing), Hangar Straight 위에 스폰서 브리지, 코너마다 이름 보드(COPSE, BECKETTS, STOWE…), 구름 낀 영국 날씨.
 - 이름은 실제 서킷 이름이에요. 퍼블리시할 때 상표 문제가 걱정되면 `Shared/TrackData`의 `Name`만 바꾸면 돼요.
 

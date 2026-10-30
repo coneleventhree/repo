@@ -172,6 +172,16 @@ Made for playing with friends: no anti-cheat / anti-troll work (the user said so
   and angles least-squares fitted so segment ends land on the real line (mean ~4 studs).
   Min radius 30. Racing-line lap ~79 s; physics_test autopilot (centre line) ~84 s
   (scratch trackdb/laptime.py; DA / PPM env vars set the engine).
+- Corner review pass (user, Oct 30 2026: "review the maps, corners you can take flat"; then "do them
+  all"), judged with tests/tools/cornerreview.luau: Harbour Chicane r 40 +-40 -> 28 +-70, Tampines
+  Chicane r 50 +-40 -> 30 +-68 (both had been straight-lined flat), Lakeside Last corner r 90 -> 55
+  with the final straight +35 (252.2 -> 287.2) so the corner's exit and the infield stay put (left
+  alone, the infield slid towards the Pier hairpin: barriers 2 studs off the road), Silverstone
+  Maggotts-Becketts scaled 0.6 (was flat at 96: now lift / brake / slow last Becketts). Not changed:
+  Suzuka S Curves (entered at ~68 out of the Second Curve, still accelerating; even 0.65 x only
+  gives a lift, and the line already uses 96-100 % of the road), Hillside Corkscrew (tighter on the
+  plateau at y 24-26 = the Sling's pocket cliffs/holes again). Many other "FLAT" corners are slow
+  links (entered slowly) or real flat-out kinks (Copse, 130R, Farm, Chapel) and stay.
 - Kart circuits Lakeside / Harbour (user: "maps more suitable for karts"; Pine Valley was removed
   at the user's request and Hillside took its slot 4): original
   designs checked against the FIA karting circuit licence criteria at 0.28 m/stud (width >= 8 m,
