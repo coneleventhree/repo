@@ -46,6 +46,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local TrackMath = require(Shared:WaitForChild("TrackMath"))
+local TrackData = require(Shared:WaitForChild("TrackData"))
 local TrackLayout = require(Shared:WaitForChild("TrackLayout"))
 local TrackLimits = require(Shared:WaitForChild("TrackLimits"))
 local RaceProgress = require(Shared:WaitForChild("RaceProgress"))
@@ -1562,6 +1563,12 @@ function RaceManager.addCircuit(c: Circuit)
 	end
 	circuits[c.id] = c
 	table.insert(order, c.id)
+	-- in TrackData.Order (the menu's order), not the order they were built
+	-- in: the first one built is the one in use, and the HUD's number keys
+	-- would not match the menu
+	table.sort(order, function(x, y)
+		return (table.find(TrackData.Order, x) or math.huge) < (table.find(TrackData.Order, y) or math.huge)
+	end)
 	if c ~= current then
 		c.folder.Name = c.id
 		c.folder.Parent = storage
